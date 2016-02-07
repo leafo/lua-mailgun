@@ -12,12 +12,17 @@ description = {
 }
 
 dependencies = {
-  "lua >= 5.1"
+  "lua >= 5.1",
+  "lpeg",
+  "luasocket",
+  "lua-cjson",
 }
 
 build = {
   type = "builtin",
   modules = {
+    ["mailgun"] = "mailgun/init.lua",
+    ["mailgun.util"] = "mailgun/util.lua",
   }
 }
 
