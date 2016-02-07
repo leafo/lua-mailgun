@@ -118,9 +118,9 @@ Pass the `Reply-To` header:
 mailgun:send_email({
   to = "you@example.com",
   subject = "Hey check it out!",
-  from = "Postmaster <postmaster@leaf.zone>"
+  from = "Postmaster <postmaster@leaf.zone>",
   headers = {
-    ["Reply-To"]: "leafo@leaf.zone"
+    ["Reply-To"] = "leafo@leaf.zone"
   },
   body = [[
     Thanks for downloading our game, reply if you have any questions!
