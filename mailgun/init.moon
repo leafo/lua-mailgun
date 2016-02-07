@@ -143,4 +143,4 @@ class Mailgun
 
     campaign_id
 
-{ :Mailgun, VERSION: "0.0.1" }
+{ :Mailgun, VERSION: "1.0.0" }

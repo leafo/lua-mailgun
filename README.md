@@ -4,6 +4,9 @@ A Lua library for sending emails and interacting with the
 [Mailgun](https://mailgun.com/) API. Compatible with OpenResty via Lapis HTTP
 API, or any other Lua script via LuaSocket.
 
+*At the moment this library only implements a subset of the API. If there's an
+missing API call you need open an issue*
+
 ## Example
 
 ```lua
