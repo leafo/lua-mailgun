@@ -92,6 +92,7 @@ describe "mailgun", ->
         "Content-type": "application/x-www-form-urlencoded"
       }
 
+
     describe "send_email", ->
       it "sends an email", ->
         http_responses["."] = send_success
@@ -195,4 +196,34 @@ describe "mailgun", ->
         }
 
         assert.same {nil, "'from' parameter is missing"}, {res, err}
+
+    it "creates campaign", ->
+      http_responses["."] = ->
+        200, [[{"campaign": {"id": 123}}]]
+
+      assert mailgun\create_campaign "hello"
+
+    it "gets campaigns", ->
+      http_responses["."] = ->
+        200, [[ { "items": [{"id": 123}] } ]]
+
+      res = assert mailgun\get_campaigns!
+      assert.same {
+        { id: 123 }
+      }, res
+
+    it "gets messages", ->
+      http_responses["."] = ->
+        200, [[ { "items": [{"id": 123}] } ]]
+
+      assert mailgun\get_messages!
+
+    it "gets or creates campaign", ->
+      http_responses["."] = ->
+        200, [[ {
+          "items": [{"name": "cool", "id": 123}]
+        } ]]
+
+      res = assert mailgun\get_or_create_campaign_id "cool"
+      assert.same 123, res
 
