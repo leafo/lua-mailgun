@@ -36,8 +36,8 @@ class Mailgun
 
     @_http
 
-  api_request: (path, data, doamin=@domain) =>
-    prefix = "#{api_path}#{domain}"
+  api_request: (path, data, domain=@domain) =>
+    prefix = "#{@api_path}#{domain}"
 
     body = data and encode_query_string data
 
@@ -49,7 +49,7 @@ class Mailgun
       method: data and "POST" or "GET"
       headers: {
         "Host": "api.mailgun.net"
-        "Content-type": "application/x-www-form-urlencoded"
+        "Content-type": body and "application/x-www-form-urlencoded" or nil
         "Content-length": body and #body or nil
         "Authorization": "Basic " .. encode_base64 @api_key
       }

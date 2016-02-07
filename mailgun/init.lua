@@ -38,11 +38,11 @@ do
       end
       return self._http
     end,
-    api_request = function(self, path, data, doamin)
-      if doamin == nil then
-        doamin = self.domain
+    api_request = function(self, path, data, domain)
+      if domain == nil then
+        domain = self.domain
       end
-      local prefix = tostring(api_path) .. tostring(domain)
+      local prefix = tostring(self.api_path) .. tostring(domain)
       local body = data and encode_query_string(data)
       local out = { }
       local req = {
@@ -51,7 +51,7 @@ do
         method = data and "POST" or "GET",
         headers = {
           ["Host"] = "api.mailgun.net",
-          ["Content-type"] = "application/x-www-form-urlencoded",
+          ["Content-type"] = body and "application/x-www-form-urlencoded" or nil,
           ["Content-length"] = body and #body or nil,
           ["Authorization"] = "Basic " .. encode_base64(self.api_key)
         },
