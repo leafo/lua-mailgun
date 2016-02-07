@@ -5,7 +5,7 @@ A Lua library for sending emails and interacting with the
 API, or any other Lua script via LuaSocket.
 
 *At the moment this library only implements a subset of the API. If there's an
-missing API call you need open an issue*
+missing API method feel free to open an issue.*
 
 ## Example
 
