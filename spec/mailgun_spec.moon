@@ -1,6 +1,8 @@
 
 ltn12 = require "ltn12"
 
+unpack = table.unpack or unpack
+
 describe "mailgun", ->
   local Mailgun
   local http_requests, http_responses
