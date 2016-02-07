@@ -22,16 +22,22 @@ class Mailgun
     assert opts.domain, "missing `domain` from opts"
     assert opts.api_key, "missing `api_key` from opts"
 
+    @http_provider = opts.http
     @domain = opts.domain
     @api_key = opts.api_key
     @default_sender = "#{opts.domain} <postmaster@#{opts.domain}>"
 
   http: =>
     unless @_http
-      @_http = if ngx
-        require "lapis.nginx.http"
+      @http_provider or= if ngx
+        "lapis.nginx.http"
       else
-        require "ssl.https"
+        "ssl.https"
+
+      @_http = if type(@http_provider) == "function"
+        @http_provider!
+      else
+        require @http_provider
 
     @_http
 

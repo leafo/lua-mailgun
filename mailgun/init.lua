@@ -31,10 +31,17 @@ do
     api_path = "https://api.mailgun.net/v3/",
     http = function(self)
       if not (self._http) then
-        if ngx then
-          self._http = require("lapis.nginx.http")
+        self.http_provider = self.http_provider or (function()
+          if ngx then
+            return "lapis.nginx.http"
+          else
+            return "ssl.https"
+          end
+        end)()
+        if type(self.http_provider) == "function" then
+          self._http = self:http_provider()
         else
-          self._http = require("ssl.https")
+          self._http = require(self.http_provider)
         end
       end
       return self._http
@@ -169,6 +176,7 @@ do
       end
       assert(opts.domain, "missing `domain` from opts")
       assert(opts.api_key, "missing `api_key` from opts")
+      self.http_provider = opts.http
       self.domain = opts.domain
       self.api_key = opts.api_key
       self.default_sender = tostring(opts.domain) .. " <postmaster@" .. tostring(opts.domain) .. ">"

@@ -4,8 +4,7 @@ ltn12 = require "ltn12"
 unpack = table.unpack or unpack
 
 describe "mailgun", ->
-  local Mailgun
-  local http_requests, http_responses
+  local http, http_requests, http_responses
 
   send_success = ->
     200, [[{"id": "123", "message": "Queued. Thank you." }]]
@@ -16,21 +15,18 @@ describe "mailgun", ->
   before_each ->
     http_requests = {}
     http_responses = {}
+    http = -> {
+      request: (opts) ->
+        table.insert http_requests, opts
+        for k,v in pairs http_responses
+          if (opts.url or "")\match k
+            status, body = v!
 
-    Mailgun = class extends require("mailgun").Mailgun
-      http: =>
-        {
-          request: (opts) ->
-            table.insert http_requests, opts
-            for k,v in pairs http_responses
-              if (opts.url or "")\match k
-                status, body = v!
+            if sink = body and opts.sink
+              sink body
 
-                if sink = body and opts.sink
-                  sink body
-
-                return 1, status
-        }
+            return 1, status
+    }
 
   parse_body = (req) ->
     return unless req.source
@@ -56,6 +52,7 @@ describe "mailgun", ->
     out
 
   it "creates a mailgun object", ->
+    import Mailgun from require "mailgun"
     Mailgun {
       domain: "leafo.net"
       api_key: "hello-world"
@@ -64,9 +61,11 @@ describe "mailgun", ->
   describe "with mailgun", ->
     local mailgun
     before_each ->
+      import Mailgun from require "mailgun"
       mailgun = Mailgun {
         domain: "leafo.net"
         api_key: "hello-world"
+        http: http
       }
 
     it "performs GET api request", ->
