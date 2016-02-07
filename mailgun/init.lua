@@ -27,7 +27,7 @@ local Mailgun
 do
   local _class_0
   local _base_0 = {
-    api_path = "https://api.mailgun.net/v2/",
+    api_path = "https://api.mailgun.net/v3/",
     http = function(self)
       if not (self._http) then
         if ngx then

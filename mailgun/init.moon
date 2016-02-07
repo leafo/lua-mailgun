@@ -17,7 +17,7 @@ add_recipients = (data, field, emails) ->
     data[field] = emails
 
 class Mailgun
-  api_path: "https://api.mailgun.net/v2/"
+  api_path: "https://api.mailgun.net/v3/"
 
   new: (opts={}) =>
     assert opts.domain, "missing `domain` from opts"
