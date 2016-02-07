@@ -1,8 +1,9 @@
 local ltn12 = require("ltn12")
-local encode_query_string
-encode_query_string = require("lapis.util").encode_query_string
-local encode_base64
-encode_base64 = require("lapis.util.encoding").encode_base64
+local encode_base64, encode_query_string
+do
+  local _obj_0 = require("mailgun.util")
+  encode_base64, encode_query_string = _obj_0.encode_base64, _obj_0.encode_query_string
+end
 local concat
 concat = table.concat
 local json = require("cjson")

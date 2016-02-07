@@ -1,8 +1,7 @@
 
 ltn12 = require "ltn12"
 
-import encode_query_string from require "lapis.util"
-import encode_base64 from require "lapis.util.encoding"
+import encode_base64, encode_query_string from require "mailgun.util"
 import concat from table
 
 json = require "cjson"
