@@ -84,7 +84,7 @@ do
       assert(body, "missing body")
       domain = domain or self.domain
       local data = {
-        from = opts.sender or self.default_sender,
+        from = opts.from or self.default_sender,
         subject = subject,
         [opts.html and "html" or "text"] = body
       }

@@ -92,71 +92,107 @@ describe "mailgun", ->
         "Content-type": "application/x-www-form-urlencoded"
       }
 
-    it "sends an email", ->
-      http_responses["."] = send_success
+    describe "send_email", ->
+      it "sends an email", ->
+        http_responses["."] = send_success
 
-      email_html = [[
-        <h1>Hello world</h1>
-        <p>Here is my email to you.</p>
-        <hr />
-        <p>
-          <a href="%unsubscribe_url%">Unsubscribe</a>
-        </p>
-      ]]
+        email_html = [[
+          <h1>Hello world</h1>
+          <p>Here is my email to you.</p>
+          <hr />
+          <p>
+            <a href="%unsubscribe_url%">Unsubscribe</a>
+          </p>
+        ]]
 
-      assert mailgun\send_email {
-        to: "you@example.com"
-        subject: "Important message here"
-        html: true
-        body: email_html
-      }
+        assert mailgun\send_email {
+          to: "you@example.com"
+          subject: "Important message here"
+          html: true
+          body: email_html
+        }
 
-      assert.same 1, #http_requests
-      req = unpack http_requests
+        assert.same 1, #http_requests
+        req = unpack http_requests
 
-      assert.same "POST", req.method
-      assert.same "https://api.mailgun.net/v2/leafo.net/messages", req.url
-      assert.same req.headers, {
-        "Authorization": "Basic aGVsbG8td29ybGQ="
-        "Content-length": 480
-        "Content-type": "application/x-www-form-urlencoded"
-        "Host": "api.mailgun.net"
-      }
+        assert.same "POST", req.method
+        assert.same "https://api.mailgun.net/v2/leafo.net/messages", req.url
+        assert.same req.headers, {
+          "Authorization": "Basic aGVsbG8td29ybGQ="
+          "Content-length": 522
+          "Content-type": "application/x-www-form-urlencoded"
+          "Host": "api.mailgun.net"
+        }
 
-      assert.same {
-        from: "leafo.net <postmaster@leafo.net>"
-        to: "you@example.com"
-        subject: "Important message here"
-        html: email_html
-      }, parse_body req
+        assert.same {
+          from: "leafo.net <postmaster@leafo.net>"
+          to: "you@example.com"
+          subject: "Important message here"
+          html: email_html
+        }, parse_body req
 
-    it "sends an email to many people", ->
-      http_responses["."] = send_success
+      it "sends an email to many people", ->
+        http_responses["."] = send_success
 
-      assert mailgun\send_email {
-        to: { "you2@example.com", "you3@example.com" }
-        subject: "Howdy"
-        body: "okay sure"
-      }
+        assert mailgun\send_email {
+          to: { "you2@example.com", "you3@example.com" }
+          subject: "Howdy"
+          body: "okay sure"
+        }
 
-      req = unpack http_requests
+        req = unpack http_requests
 
-      assert.same {
-        from: "leafo.net <postmaster@leafo.net>"
-        to: { "you2@example.com", "you3@example.com" }
-        subject: "Howdy"
-        text: "okay sure"
-      }, parse_body req
+        assert.same {
+          from: "leafo.net <postmaster@leafo.net>"
+          to: { "you2@example.com", "you3@example.com" }
+          subject: "Howdy"
+          text: "okay sure"
+        }, parse_body req
+
+      it "sends an email with recipient vars and other options", ->
+        http_responses["."] = send_success
+
+        assert mailgun\send_email {
+          to: { "you2@example.com", "you3@example.com" }
+          bcc: "cool@example.com"
+          cc: { "a@itch.zone", "b@itch.zone" }
+          from: "dad@itch.zone"
+          subject: "Howdy"
+          body: "okay sure %recipient.name%"
+          track_opens: true
+          tags: {"hello", "world"}
+          campaign: 123
+          headers: {
+            "Reply-To": "leaf@leafo.zone"
+          }
+        }
+
+        req = unpack http_requests
+
+        assert.same {
+          to: { "you2@example.com", "you3@example.com" }
+          bcc: "cool@example.com"
+          cc: { "a@itch.zone", "b@itch.zone" }
+          from: "dad@itch.zone"
+          subject: "Howdy"
+          text: "okay sure %recipient.name%"
+          "h:Reply-To": "leaf@leafo.zone"
+          "o:campaign": "123"
+          "o:tracking-opens": "yes"
+          "o:tag": {
+            "hello", "world"
+          }
+        }, parse_body req
 
 
-    it "handles server error", ->
-      http_responses["."] = send_fail
+      it "handles server error", ->
+        http_responses["."] = send_fail
 
-      res, err = mailgun\send_email {
-        to: { "you2@example.com", "you3@example.com" }
-        subject: "Howdy"
-        body: "this email will fail"
-      }
+        res, err = mailgun\send_email {
+          to: { "you2@example.com", "you3@example.com" }
+          subject: "Howdy"
+          body: "this email will fail"
+        }
 
-      assert.same {nil, "'from' parameter is missing"}, {res, err}
+        assert.same {nil, "'from' parameter is missing"}, {res, err}
 

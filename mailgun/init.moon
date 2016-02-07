@@ -82,7 +82,7 @@ class Mailgun
     domain or= @domain
 
     data = {
-      from: opts.sender or @default_sender
+      from: opts.from or @default_sender
       subject: subject
       [opts.html and "html" or "text"]: body
     }

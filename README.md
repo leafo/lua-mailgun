@@ -72,6 +72,7 @@ Optional fields:
 
 * `from` - the sender of the email (default: `{domain} <postmaster@{domain}>`)
 * `html` - set to `true` to send email as HTML (default `false`)
+* `domain` - use a different domain than the default
 * `cc` - recipients to cc to, same format as `to`
 * `bcc` - recipients to bcc to, same format as `to`
 * `track_opens` - track the open rate fo the email (default `false`)
