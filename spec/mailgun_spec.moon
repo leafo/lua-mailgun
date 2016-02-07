@@ -33,7 +33,17 @@ describe "mailgun", ->
 
     body = table.concat out
     import parse_query_string from require "lapis.util"
-    {k, v for k, v in pairs parse_query_string body when type(k) == "string"}
+
+    out = {}
+    for {key, val} in *parse_query_string body
+      if out[key]
+        if type(out[key]) == "table"
+          table.insert out[key], val
+        else
+          out[key] = {out[key], val}
+      else
+        out[key] = val
+    out
 
   it "creates a mailgun object", ->
     Mailgun {
@@ -105,6 +115,19 @@ describe "mailgun", ->
       assert.same "you@example.com", body.to
       assert.same "Important message here", body.subject
       assert.truthy body.html
+      assert.truthy (body.html\match "Here is my email to you")
 
-    
+    it "sends an email to many people", ->
+      mailgun\send_email {
+        to: { "you2@example.com", "you3@example.com" }
+        subject: "Howdy"
+        body: "okay sure"
+      }
+
+      req = unpack http_requests
+
+      body = parse_body req
+      assert.same { "you2@example.com", "you3@example.com" }, body.to
+      assert.same "Howdy", body.subject
+      assert.same "okay sure", body.text
 
