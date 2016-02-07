@@ -5,6 +5,12 @@ describe "mailgun", ->
   local Mailgun
   local http_requests, http_responses
 
+  send_success = ->
+    200, [[{"id": "123", "message": "Queued. Thank you." }]]
+
+  send_fail = ->
+    400, [[{"message": "'from' parameter is missing" }]]
+
   before_each ->
     http_requests = {}
     http_responses = {}
@@ -15,11 +21,13 @@ describe "mailgun", ->
           request: (opts) ->
             table.insert http_requests, opts
             for k,v in pairs http_responses
-              if k\match opts.url
-                if sink = opts.sink
-                  sink v
-                return 200
+              if (opts.url or "")\match k
+                status, body = v!
 
+                if sink = body and opts.sink
+                  sink body
+
+                return 1, status
         }
 
   parse_body = (req) ->
@@ -85,18 +93,22 @@ describe "mailgun", ->
       }
 
     it "sends an email", ->
-      mailgun\send_email {
+      http_responses["."] = send_success
+
+      email_html = [[
+        <h1>Hello world</h1>
+        <p>Here is my email to you.</p>
+        <hr />
+        <p>
+          <a href="%unsubscribe_url%">Unsubscribe</a>
+        </p>
+      ]]
+
+      assert mailgun\send_email {
         to: "you@example.com"
         subject: "Important message here"
         html: true
-        body: [[
-          <h1>Hello world</h1>
-          <p>Here is my email to you.</p>
-          <hr />
-          <p>
-            <a href="%unsubscribe_url%">Unsubscribe</a>
-          </p>
-        ]]
+        body: email_html
       }
 
       assert.same 1, #http_requests
@@ -106,19 +118,22 @@ describe "mailgun", ->
       assert.same "https://api.mailgun.net/v2/leafo.net/messages", req.url
       assert.same req.headers, {
         "Authorization": "Basic aGVsbG8td29ybGQ="
-        "Content-length": 472
+        "Content-length": 480
         "Content-type": "application/x-www-form-urlencoded"
         "Host": "api.mailgun.net"
       }
 
-      body = parse_body req
-      assert.same "you@example.com", body.to
-      assert.same "Important message here", body.subject
-      assert.truthy body.html
-      assert.truthy (body.html\match "Here is my email to you")
+      assert.same {
+        from: "leafo.net <postmaster@leafo.net>"
+        to: "you@example.com"
+        subject: "Important message here"
+        html: email_html
+      }, parse_body req
 
     it "sends an email to many people", ->
-      mailgun\send_email {
+      http_responses["."] = send_success
+
+      assert mailgun\send_email {
         to: { "you2@example.com", "you3@example.com" }
         subject: "Howdy"
         body: "okay sure"
@@ -126,8 +141,22 @@ describe "mailgun", ->
 
       req = unpack http_requests
 
-      body = parse_body req
-      assert.same { "you2@example.com", "you3@example.com" }, body.to
-      assert.same "Howdy", body.subject
-      assert.same "okay sure", body.text
+      assert.same {
+        from: "leafo.net <postmaster@leafo.net>"
+        to: { "you2@example.com", "you3@example.com" }
+        subject: "Howdy"
+        text: "okay sure"
+      }, parse_body req
+
+
+    it "handles server error", ->
+      http_responses["."] = send_fail
+
+      res, err = mailgun\send_email {
+        to: { "you2@example.com", "you3@example.com" }
+        subject: "Howdy"
+        body: "this email will fail"
+      }
+
+      assert.same {nil, "'from' parameter is missing"}, {res, err}
 

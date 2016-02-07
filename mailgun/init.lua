@@ -55,10 +55,23 @@ do
           ["Content-length"] = body and #body or nil,
           ["Authorization"] = "Basic " .. encode_base64(self.api_key)
         },
-        sink = ltn12.sink.table(out)
+        sink = ltn12.sink.table(out),
+        protocol = not ngx and "sslv23" or nil
       }
-      local res = self:http().request(req)
-      return concat(out), res
+      local _, status = self:http().request(req)
+      return self:format_response(concat(out), status)
+    end,
+    format_response = function(self, res, status)
+      pcall(function()
+        res = json.decode(res)
+      end)
+      if res == "" or not res then
+        res = "invalid response"
+      end
+      if status ~= 200 then
+        return nil, res.message or res
+      end
+      return res
     end,
     send_email = function(self, opts)
       if opts == nil then
@@ -71,7 +84,7 @@ do
       assert(body, "missing body")
       domain = domain or self.domain
       local data = {
-        from = opts.sender or sender,
+        from = opts.sender or self.default_sender,
         subject = subject,
         [opts.html and "html" or "text"] = body
       }
@@ -107,27 +120,33 @@ do
       end
       return self:api_request("/messages", data, domain)
     end,
-    create_campaign = function(name)
-      local res = self:api_request("/campaigns", {
+    create_campaign = function(self, name)
+      local res, err = self:api_request("/campaigns", {
         name = name
       })
-      res = json.decode(res)
-      return res.campaign
+      if res then
+        return res.campaign
+      else
+        return res, err
+      end
     end,
-    get_campaigns = function()
-      local res = self:api_request("/campaigns")
-      res = json.decode(res)
-      return res.items
+    get_campaigns = function(self)
+      local res, err = self:api_request("/campaigns")
+      if res then
+        return res.items
+      else
+        return res, err
+      end
     end,
-    get_messages = function()
+    get_messages = function(self)
       local params = encode_query_string({
         event = "stored"
       })
-      return json.decode((self:api_request("/events?" .. tostring(params))))
+      return self:api_request("/events?" .. tostring(params))
     end,
-    get_or_create_campaign_id = function(campaign_name)
+    get_or_create_campaign_id = function(self, campaign_name)
       local campaign_id
-      local _list_0 = self:get_campaigns()
+      local _list_0 = assert(self:get_campaigns())
       for _index_0 = 1, #_list_0 do
         local c = _list_0[_index_0]
         if c.name == campaign_name then
@@ -136,7 +155,7 @@ do
         end
       end
       if not (campaign_id) then
-        campaign_id = self:create_campaign(campaign_name).id
+        campaign_id = assert(self:create_campaign(campaign_name)).id
       end
       return campaign_id
     end

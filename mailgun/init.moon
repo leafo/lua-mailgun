@@ -54,10 +54,23 @@ class Mailgun
         "Authorization": "Basic " .. encode_base64 @api_key
       }
       sink: ltn12.sink.table out
+      protocol: not ngx and "sslv23" or nil -- for luasec
     }
 
-    res = @http!.request req
-    concat(out), res
+    _, status = @http!.request req
+    @format_response concat(out), status
+
+  format_response: (res, status) =>
+    pcall ->
+      res = json.decode res
+
+    if res == "" or not res
+      res = "invalid response"
+
+    if status != 200
+      return nil, res.message or res
+
+    res
 
   send_email: (opts={}) =>
     {:to, :subject, :body, :domain} = opts
@@ -69,7 +82,7 @@ class Mailgun
     domain or= @domain
 
     data = {
-      from: opts.sender or sender
+      from: opts.sender or @default_sender
       subject: subject
       [opts.html and "html" or "text"]: body
     }
@@ -97,30 +110,36 @@ class Mailgun
 
     @api_request "/messages", data, domain
 
-  create_campaign: (name) ->
-    res = @api_request "/campaigns", { :name }
-    res = json.decode res
-    res.campaign
+  create_campaign: (name) =>
+    res, err = @api_request "/campaigns", { :name }
 
-  get_campaigns: ->
-    res = @api_request "/campaigns"
-    res = json.decode res
-    res.items
+    if res
+      res.campaign
+    else
+      res, err
 
-  get_messages: ->
+  get_campaigns: =>
+    res, err = @api_request "/campaigns"
+
+    if res
+      res.items
+    else
+      res, err
+
+  get_messages: =>
     params = encode_query_string { event: "stored" }
-    json.decode (@api_request "/events?#{params}")
+    @api_request "/events?#{params}"
 
-  get_or_create_campaign_id: (campaign_name) ->
+  get_or_create_campaign_id: (campaign_name) =>
     local campaign_id
 
-    for c in *@get_campaigns!
+    for c in *assert @get_campaigns!
       if c.name == campaign_name
         campaign_id = c.id
         break
 
     unless campaign_id
-      campaign_id = @create_campaign(campaign_name).id
+      campaign_id = assert(@create_campaign(campaign_name)).id
 
     campaign_id
 
