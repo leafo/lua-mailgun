@@ -40,7 +40,7 @@ describe "mailgun", ->
       table.insert out, part
 
     body = table.concat out
-    import parse_query_string from require "lapis.util"
+    import parse_query_string from require "mailgun.util"
 
     out = {}
     for {key, val} in *parse_query_string body
@@ -72,7 +72,7 @@ describe "mailgun", ->
       assert.same 1, #http_requests
       req = unpack http_requests
       assert.same "GET", req.method
-      assert.same "https://api.mailgun.net/v2/leafo.net/hello", req.url
+      assert.same "https://api.mailgun.net/v3/leafo.net/hello", req.url
       assert.same req.headers, {
         Host: "api.mailgun.net"
         Authorization: "Basic aGVsbG8td29ybGQ="
@@ -84,7 +84,7 @@ describe "mailgun", ->
       req = unpack http_requests
 
       assert.same "POST", req.method
-      assert.same "https://api.mailgun.net/v2/leafo.net/world", req.url
+      assert.same "https://api.mailgun.net/v3/leafo.net/world", req.url
       assert.same req.headers, {
         Host: "api.mailgun.net"
         Authorization: "Basic aGVsbG8td29ybGQ="
@@ -117,7 +117,7 @@ describe "mailgun", ->
         req = unpack http_requests
 
         assert.same "POST", req.method
-        assert.same "https://api.mailgun.net/v2/leafo.net/messages", req.url
+        assert.same "https://api.mailgun.net/v3/leafo.net/messages", req.url
         assert.same req.headers, {
           "Authorization": "Basic aGVsbG8td29ybGQ="
           "Content-length": 522
