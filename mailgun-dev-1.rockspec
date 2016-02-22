@@ -16,6 +16,7 @@ dependencies = {
   "lpeg",
   "luasocket",
   "lua-cjson",
+  "luasec",
 }
 
 build = {
