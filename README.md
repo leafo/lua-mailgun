@@ -40,7 +40,6 @@ m:send_email({
 luarocks install mailgun
 ```
 
-
 ## Reference
 
 The `Mailgun` constructor can be used to create a new client to Mailgun. It's
@@ -59,9 +58,10 @@ The following options are valid:
 
 * `domain` - the domain to use for API requests **required**
 * `api_key` - the API key to authenticate requests **required**
+* `default_sender` - the sender to use for `send_email` when a sender is not provided *optional*
 
-The default sender of any email is constructed from the `domain` like this:
-`{domain} <postmaster@{domain}>`.
+The value of `default_sender` has a default created from the `domain` like
+this: `{domain} <postmaster@{domain}>`.
 
 ### Methods
 
@@ -148,7 +148,8 @@ Gets a campaign id for a campaign by name. If it doesn't exist yet a new one is 
 
 #### `messages, paging = mailgun:get_messages()`
 
-Gets the first page of stored messages
+Gets the first page of stored messages (this uses the events API). The paging
+object includes the urls for fetching subsequent pages.
 
 #### `unsubscribes, paging = mailgun:get_unsubscribes(opts={})`
 
@@ -190,3 +191,13 @@ parameters.
 
 Iterates through each complaint (fetching each page as needed). Similar to
 `get_unsubscribes`.
+
+
+#### `new_mailgun = mailgun:for_domain(domain)`
+
+Returns a new instance of the API client configured the same way, but with the
+domain replaced with the provided domain. If you have multiple domains on your
+account you can use this to switch to them for any of the `get_` methods.
+
+
+

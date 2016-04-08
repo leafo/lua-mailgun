@@ -34,7 +34,7 @@ class Mailgun
     @http_provider = opts.http
     @domain = opts.domain
     @api_key = opts.api_key
-    @default_sender = "#{opts.domain} <postmaster@#{opts.domain}>"
+    @default_sender = opts.default_sender or "#{opts.domain} <postmaster@#{opts.domain}>"
 
   -- create a new instance on another domain
   for_domain: (domain) =>

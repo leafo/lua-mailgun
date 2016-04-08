@@ -256,7 +256,7 @@ do
       self.http_provider = opts.http
       self.domain = opts.domain
       self.api_key = opts.api_key
-      self.default_sender = tostring(opts.domain) .. " <postmaster@" .. tostring(opts.domain) .. ">"
+      self.default_sender = opts.default_sender or tostring(opts.domain) .. " <postmaster@" .. tostring(opts.domain) .. ">"
     end,
     __base = _base_0,
     __name = "Mailgun"
