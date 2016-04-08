@@ -1,7 +1,7 @@
 
 ltn12 = require "ltn12"
 
-import encode_base64, encode_query_string from require "mailgun.util"
+import encode_base64, encode_query_string, parse_query_string from require "mailgun.util"
 import concat from table
 
 json = require "cjson"
@@ -134,6 +134,37 @@ class Mailgun
   get_messages: =>
     params = encode_query_string { event: "stored" }
     @api_request "/events?#{params}"
+
+  get_unsubscribes: (opts={}) =>
+    res, err = @api_request "/unsubscribes?#{encode_query_string opts}"
+
+    if res
+      res.items, res.paging
+    else
+      nil, err
+
+  -- iterate through every unsubscribe
+  each_unsubscribe: (after_email) =>
+    parse_url = require("socket.url").parse
+
+    coroutine.wrap ->
+      while true
+        opts = {
+          limit: 100
+          page: after_email and "next"
+          address: after_email
+        }
+
+        page, paging = @get_unsubscribes opts
+        return unless page
+
+        for item in *page
+          coroutine.yield page
+
+        return unless paging and paging.next
+        q = parse_query_string parse_url(paging.next).query
+        after_email = q and q.address
+        return unless after_email
 
   get_or_create_campaign_id: (campaign_name) =>
     local campaign_id

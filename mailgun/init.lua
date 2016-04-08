@@ -1,8 +1,8 @@
 local ltn12 = require("ltn12")
-local encode_base64, encode_query_string
+local encode_base64, encode_query_string, parse_query_string
 do
   local _obj_0 = require("mailgun.util")
-  encode_base64, encode_query_string = _obj_0.encode_base64, _obj_0.encode_query_string
+  encode_base64, encode_query_string, parse_query_string = _obj_0.encode_base64, _obj_0.encode_query_string, _obj_0.parse_query_string
 end
 local concat
 concat = table.concat
@@ -151,6 +151,45 @@ do
         event = "stored"
       })
       return self:api_request("/events?" .. tostring(params))
+    end,
+    get_unsubscribes = function(self, opts)
+      if opts == nil then
+        opts = { }
+      end
+      local res, err = self:api_request("/unsubscribes?" .. tostring(encode_query_string(opts)))
+      if res then
+        return res.items, res.paging
+      else
+        return nil, err
+      end
+    end,
+    each_unsubscribe = function(self, after_email)
+      local parse_url = require("socket.url").parse
+      return coroutine.wrap(function()
+        while true do
+          local opts = {
+            limit = 100,
+            page = after_email and "next",
+            address = after_email
+          }
+          local page, paging = self:get_unsubscribes(opts)
+          if not (page) then
+            return 
+          end
+          for _index_0 = 1, #page do
+            local item = page[_index_0]
+            coroutine.yield(page)
+          end
+          if not (paging and paging.next) then
+            return 
+          end
+          local q = parse_query_string(parse_url(paging.next).query)
+          after_email = q and q.address
+          if not (after_email) then
+            return 
+          end
+        end
+      end)
     end,
     get_or_create_campaign_id = function(self, campaign_name)
       local campaign_id
