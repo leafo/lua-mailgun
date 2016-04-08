@@ -151,10 +151,10 @@ class Mailgun
       nil, err
 
   get_unsubscribes: items_method "/unsubscribes"
-
   each_unsubscribe: => @_each_item @get_unsubscribes, "address"
 
   get_bounces: items_method "/bounces"
+  each_bounce: => @_each_item @get_bounces, "address"
 
   -- iterate through every item in basic paging api endpoint
   _each_item: (getter, paging_field) =>
@@ -176,7 +176,7 @@ class Mailgun
         return unless next page
 
         for item in *page
-          coroutine.yield page
+          coroutine.yield item
 
         return unless paging and paging.next
         q = parse_query_string parse_url(paging.next).query

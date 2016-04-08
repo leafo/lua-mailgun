@@ -182,6 +182,9 @@ do
       return self:_each_item(self.get_unsubscribes, "address")
     end,
     get_bounces = items_method("/bounces"),
+    each_bounce = function(self)
+      return self:_each_item(self.get_bounces, "address")
+    end,
     _each_item = function(self, getter, paging_field)
       local parse_url = require("socket.url").parse
       local after_value
@@ -201,7 +204,7 @@ do
           end
           for _index_0 = 1, #page do
             local item = page[_index_0]
-            coroutine.yield(page)
+            coroutine.yield(item)
           end
           if not (paging and paging.next) then
             return 
