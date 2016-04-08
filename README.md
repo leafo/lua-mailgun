@@ -200,4 +200,8 @@ domain replaced with the provided domain. If you have multiple domains on your
 account you can use this to switch to them for any of the `get_` methods.
 
 
+# Changelog
+
+* 1.1.0 — 2016-04-8 — Added methods to fetch supressions, added `for_domain`
+* 1.0.0 — 2016-02-6 — Initial release
 

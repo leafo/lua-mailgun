@@ -209,4 +209,4 @@ class Mailgun
 
   get_stats: =>
 
-{ :Mailgun, VERSION: "1.0.0" }
+{ :Mailgun, VERSION: "1.1.0" }
