@@ -162,7 +162,7 @@ parameters.
 
 Iterates through each message (fetching each page as needed)
 
-```
+```lua
 for unsub in mailgun:each_unsubscribe() do
   print(unsub.address)
 end
