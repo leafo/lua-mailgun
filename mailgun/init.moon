@@ -36,6 +36,14 @@ class Mailgun
     @api_key = opts.api_key
     @default_sender = "#{opts.domain} <postmaster@#{opts.domain}>"
 
+  -- create a new instance on another domain
+  for_domain: (domain) =>
+    Mailgun {
+      domain: domain
+      api_key: @api_key
+      http: @http_provider
+    }
+
   http: =>
     unless @_http
       @http_provider or= if ngx
@@ -198,5 +206,7 @@ class Mailgun
       campaign_id = assert(@create_campaign(campaign_name)).id
 
     campaign_id
+
+  get_stats: =>
 
 { :Mailgun, VERSION: "1.0.0" }

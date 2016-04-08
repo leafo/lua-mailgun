@@ -49,6 +49,13 @@ do
   local _class_0
   local _base_0 = {
     api_path = "https://api.mailgun.net/v3/",
+    for_domain = function(self, domain)
+      return Mailgun({
+        domain = domain,
+        api_key = self.api_key,
+        http = self.http_provider
+      })
+    end,
     http = function(self)
       if not (self._http) then
         self.http_provider = self.http_provider or (function()
@@ -235,7 +242,8 @@ do
         campaign_id = assert(self:create_campaign(campaign_name)).id
       end
       return campaign_id
-    end
+    end,
+    get_stats = function(self) end
   }
   _base_0.__index = _base_0
   _class_0 = setmetatable({
