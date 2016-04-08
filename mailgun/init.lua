@@ -24,6 +24,26 @@ add_recipients = function(data, field, emails)
     data[field] = emails
   end
 end
+local items_method
+items_method = function(path, items_field, paging_field)
+  if items_field == nil then
+    items_field = "items"
+  end
+  if paging_field == nil then
+    paging_field = "paging"
+  end
+  return function(self, opts)
+    if opts == nil then
+      opts = { }
+    end
+    local res, err = self:api_request(tostring(path) .. "?" .. tostring(encode_query_string(opts)))
+    if res then
+      return res[items_field], res[paging_field]
+    else
+      return nil, err
+    end
+  end
+end
 local Mailgun
 do
   local _class_0
@@ -157,19 +177,11 @@ do
         return nil, err
       end
     end,
-    get_unsubscribes = function(self, opts)
-      if opts == nil then
-        opts = { }
-      end
-      local res, err = self:api_request("/unsubscribes?" .. tostring(encode_query_string(opts)))
-      if res then
-        return res.items, res.paging
-      else
-        return nil, err
-      end
-    end,
-    each_unsubscribe = function(self, after_email)
+    get_unsubscribes = items_method("/unsubscribes"),
+    get_bounces = items_method("/bounces"),
+    each_unsubscribe = function(self)
       local parse_url = require("socket.url").parse
+      local after_email
       return coroutine.wrap(function()
         while true do
           local opts = {

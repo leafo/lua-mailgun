@@ -15,6 +15,15 @@ add_recipients = (data, field, emails) ->
   else
     data[field] = emails
 
+items_method = (path, items_field="items", paging_field="paging") ->
+  (opts={}) =>
+    res, err = @api_request "#{path}?#{encode_query_string opts}"
+
+    if res
+      res[items_field], res[paging_field]
+    else
+      nil, err
+
 class Mailgun
   api_path: "https://api.mailgun.net/v3/"
 
@@ -141,17 +150,14 @@ class Mailgun
     else
       nil, err
 
-  get_unsubscribes: (opts={}) =>
-    res, err = @api_request "/unsubscribes?#{encode_query_string opts}"
-
-    if res
-      res.items, res.paging
-    else
-      nil, err
+  get_unsubscribes: items_method "/unsubscribes"
+  get_bounces: items_method "/bounces"
 
   -- iterate through every unsubscribe
-  each_unsubscribe: (after_email) =>
+  each_unsubscribe: =>
     parse_url = require("socket.url").parse
+
+    local after_email
 
     coroutine.wrap ->
       while true
