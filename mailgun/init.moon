@@ -156,6 +156,9 @@ class Mailgun
   get_bounces: items_method "/bounces"
   each_bounce: => @_each_item @get_bounces, "address"
 
+  get_complaints: items_method "/complaints"
+  each_complaint: => @_each_item @get_complaints, "address"
+
   -- iterate through every item in basic paging api endpoint
   _each_item: (getter, paging_field) =>
     parse_url = require("socket.url").parse

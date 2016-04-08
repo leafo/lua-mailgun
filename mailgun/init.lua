@@ -185,6 +185,10 @@ do
     each_bounce = function(self)
       return self:_each_item(self.get_bounces, "address")
     end,
+    get_complaints = items_method("/complaints"),
+    each_complaint = function(self)
+      return self:_each_item(self.get_complaints, "address")
+    end,
     _each_item = function(self, getter, paging_field)
       local parse_url = require("socket.url").parse
       local after_value
