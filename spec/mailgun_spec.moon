@@ -246,3 +246,35 @@ describe "mailgun", ->
 
       assert.same { {id: 123} }, mailgun\get_complaints!
 
+    it "iterates unsubscribes with one page", ->
+      http_responses["/unsubscribes"] = ->
+        200, [[ { "items": [{"id": 123}, {"id": 999}] } ]]
+
+      assert.same {
+        {id: 123}
+        {id: 999}
+      },[u for u in mailgun\each_unsubscribe!]
+
+    it "iterates unsubscribes with two pages", ->
+      -- second page
+      http_responses["/unsubscribes.-page=next"] = ->
+        200, [[ {
+          "items": [{"id": 22}, {"id": 23}]
+        } ]]
+
+      -- first page
+      http_responses["/unsubscribes"] = ->
+        200, [[ {
+          "items": [{"id": 12}, {"id": 13}],
+          "paging": {"next": "test.com?address=next@email.com"}
+        } ]]
+
+      assert.same {
+        {id: 12}
+        {id: 13}
+        {id: 22}
+        {id: 23}
+      },[u for u in mailgun\each_unsubscribe!]
+
+
+
