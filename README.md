@@ -138,7 +138,7 @@ mailgun:send_email({
 
 Creates a new campaign named `name`. Retruns the campaign object
 
-#### `mailgun:get_campaigns()`
+#### `campaigns = mailgun:get_campaigns()`
 
 Gets all the campaigns that are available
 
@@ -146,9 +146,24 @@ Gets all the campaigns that are available
 
 Gets a campaign id for a campaign by name. If it doesn't exist yet a new one is created.
 
-#### `mailgun:get_messages()`
+#### `messages, paging = mailgun:get_messages()`
 
 Gets the first page of stored messages
 
+#### `messages, paging = mailgun:get_unsubscribes(opts={})`
 
+https://documentation.mailgun.com/api-suppressions.html#unsubscribes
+
+Gets the first page of unsubscribes messages. `opts` is passed as query string
+parameters.
+
+#### `iter = mailgun:each_unsubscribe()`
+
+Iterates through each message (fetching each page as needed)
+
+```
+for unsub in mailgun:each_unsubscribe() do
+  print(unsub.address)
+end
+```
 
