@@ -127,13 +127,19 @@ class Mailgun
     res, err = @api_request "/campaigns"
 
     if res
-      res.items
+      res.items, res
     else
       res, err
 
   get_messages: =>
     params = encode_query_string { event: "stored" }
-    @api_request "/events?#{params}"
+
+    res, err = @api_request "/events?#{params}"
+
+    if res
+      res.items, res.paging
+    else
+      nil, err
 
   get_unsubscribes: (opts={}) =>
     res, err = @api_request "/unsubscribes?#{encode_query_string opts}"
@@ -150,13 +156,15 @@ class Mailgun
     coroutine.wrap ->
       while true
         opts = {
-          limit: 100
+          limit: 1000
           page: after_email and "next"
           address: after_email
         }
 
         page, paging = @get_unsubscribes opts
+
         return unless page
+        return unless next page
 
         for item in *page
           coroutine.yield page

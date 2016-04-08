@@ -141,7 +141,7 @@ do
     get_campaigns = function(self)
       local res, err = self:api_request("/campaigns")
       if res then
-        return res.items
+        return res.items, res
       else
         return res, err
       end
@@ -150,7 +150,12 @@ do
       local params = encode_query_string({
         event = "stored"
       })
-      return self:api_request("/events?" .. tostring(params))
+      local res, err = self:api_request("/events?" .. tostring(params))
+      if res then
+        return res.items, res.paging
+      else
+        return nil, err
+      end
     end,
     get_unsubscribes = function(self, opts)
       if opts == nil then
@@ -168,12 +173,15 @@ do
       return coroutine.wrap(function()
         while true do
           local opts = {
-            limit = 100,
+            limit = 1000,
             page = after_email and "next",
             address = after_email
           }
           local page, paging = self:get_unsubscribes(opts)
           if not (page) then
+            return 
+          end
+          if not (next(page)) then
             return 
           end
           for _index_0 = 1, #page do
