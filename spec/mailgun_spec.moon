@@ -228,3 +228,21 @@ describe "mailgun", ->
       res = assert mailgun\get_or_create_campaign_id "cool"
       assert.same 123, res
 
+    it "get unsubscribes", ->
+      http_responses["/unsubscribes"] = ->
+        200, [[ { "items": [{"id": 123}] } ]]
+
+      assert.same { {id: 123} }, mailgun\get_unsubscribes!
+
+    it "get bounces", ->
+      http_responses["/bounces"] = ->
+        200, [[ { "items": [{"id": 123}] } ]]
+
+      assert.same { {id: 123} }, mailgun\get_bounces!
+
+    it "get complaints", ->
+      http_responses["/complaints"] = ->
+        200, [[ { "items": [{"id": 123}] } ]]
+
+      assert.same { {id: 123} }, mailgun\get_complaints!
+
