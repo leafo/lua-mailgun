@@ -150,7 +150,7 @@ Gets a campaign id for a campaign by name. If it doesn't exist yet a new one is 
 
 Gets the first page of stored messages
 
-#### `messages, paging = mailgun:get_unsubscribes(opts={})`
+#### `unsubscribes, paging = mailgun:get_unsubscribes(opts={})`
 
 https://documentation.mailgun.com/api-suppressions.html#unsubscribes
 
@@ -167,3 +167,26 @@ for unsub in mailgun:each_unsubscribe() do
 end
 ```
 
+#### `bounces, paging = mailgun:get_bounces(opts={})`
+
+https://documentation.mailgun.com/api-suppressions.html#bounces
+
+Gets the first page of unsubscribes bounces. `opts` is passed as query string
+parameters.
+
+#### `iter = mailgun:each_bounce()`
+
+Iterates through each bounce (fetching each page as needed). Similar to
+`get_unsubscribes`.
+
+#### `complaints, paging = mailgun:get_complaints(opts={})`
+
+https://documentation.mailgun.com/api-suppressions.html#view-all-complaints
+
+Gets the first page of complaints messages. `opts` is passed as query string
+parameters.
+
+#### `iter = mailgun:each_complaint()`
+
+Iterates through each complaint (fetching each page as needed). Similar to
+`get_unsubscribes`.
