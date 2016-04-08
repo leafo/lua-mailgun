@@ -151,23 +151,26 @@ class Mailgun
       nil, err
 
   get_unsubscribes: items_method "/unsubscribes"
+
+  each_unsubscribe: => @_each_item @get_unsubscribes, "address"
+
   get_bounces: items_method "/bounces"
 
-  -- iterate through every unsubscribe
-  each_unsubscribe: =>
+  -- iterate through every item in basic paging api endpoint
+  _each_item: (getter, paging_field) =>
     parse_url = require("socket.url").parse
 
-    local after_email
+    local after_value
 
     coroutine.wrap ->
       while true
         opts = {
           limit: 1000
-          page: after_email and "next"
-          address: after_email
+          page: after_value and "next"
+          [paging_field]: after_value
         }
 
-        page, paging = @get_unsubscribes opts
+        page, paging = getter @, opts
 
         return unless page
         return unless next page
@@ -177,8 +180,8 @@ class Mailgun
 
         return unless paging and paging.next
         q = parse_query_string parse_url(paging.next).query
-        after_email = q and q.address
-        return unless after_email
+        after_value = q and q[paging_field]
+        return unless after_value
 
   get_or_create_campaign_id: (campaign_name) =>
     local campaign_id

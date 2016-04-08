@@ -178,18 +178,21 @@ do
       end
     end,
     get_unsubscribes = items_method("/unsubscribes"),
-    get_bounces = items_method("/bounces"),
     each_unsubscribe = function(self)
+      return self:_each_item(self.get_unsubscribes, "address")
+    end,
+    get_bounces = items_method("/bounces"),
+    _each_item = function(self, getter, paging_field)
       local parse_url = require("socket.url").parse
-      local after_email
+      local after_value
       return coroutine.wrap(function()
         while true do
           local opts = {
             limit = 1000,
-            page = after_email and "next",
-            address = after_email
+            page = after_value and "next",
+            [paging_field] = after_value
           }
-          local page, paging = self:get_unsubscribes(opts)
+          local page, paging = getter(self, opts)
           if not (page) then
             return 
           end
@@ -204,8 +207,8 @@ do
             return 
           end
           local q = parse_query_string(parse_url(paging.next).query)
-          after_email = q and q.address
-          if not (after_email) then
+          after_value = q and q[paging_field]
+          if not (after_value) then
             return 
           end
         end
