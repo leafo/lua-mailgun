@@ -21,8 +21,8 @@ describe "mailgun", ->
     http = -> {
       request: (opts) ->
         table.insert http_requests, opts
-        for {patern, response} in *http_responses
-          if (opts.url or "")\match patern
+        for {pattern, response} in *http_responses
+          if (opts.url or "")\match pattern
             status, body = response!
 
             if sink = body and opts.sink
