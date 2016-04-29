@@ -220,7 +220,7 @@ describe "mailgun", ->
       stub_http ".", ->
         200, [[ { "items": [{"id": 123}] } ]]
 
-      assert mailgun\get_messages!
+      assert mailgun\get_events!
 
     it "gets or creates campaign", ->
       stub_http ".", ->
@@ -258,7 +258,7 @@ describe "mailgun", ->
         {id: 999}
       },[u for u in mailgun\each_unsubscribe!]
 
-    it "iterates unsubscribes with two pages", ->
+    it "iterates unsubscribes with two pages #ddd", ->
       -- second page
       stub_http "/unsubscribes.-page=next", ->
         200, [[ {
@@ -269,7 +269,7 @@ describe "mailgun", ->
       stub_http "/unsubscribes", ->
         200, [[ {
           "items": [{"id": 12}, {"id": 13}],
-          "paging": {"next": "test.com?address=next@email.com"}
+          "paging": {"next": "/unsubscribes?page=next&address=next@email.com"}
         } ]]
 
       assert.same {

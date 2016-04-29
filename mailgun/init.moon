@@ -59,14 +59,17 @@ class Mailgun
     @_http
 
   api_request: (path, data, domain=@domain) =>
-    prefix = "#{@api_path}#{domain}"
+    url = if path\match "^https?:"
+      path
+    else
+      prefix = "#{@api_path}#{domain}"
+      prefix .. path
 
     body = data and encode_query_string data
 
     out = {}
-
     req = {
-      url: prefix .. path
+      :url
       source: body and ltn12.source.string(body) or nil
       method: data and "POST" or "GET"
       headers: {
@@ -148,41 +151,35 @@ class Mailgun
     else
       res, err
 
-  get_messages: =>
-    params = encode_query_string { event: "stored" }
-
-    res, err = @api_request "/events?#{params}"
-
-    if res
-      res.items, res.paging
-    else
-      nil, err
+  get_events: items_method "/events"
+  each_event: (opts={}) =>
+    opts.limit or= 300
+    @_each_item @get_events, opts
 
   get_unsubscribes: items_method "/unsubscribes"
-  each_unsubscribe: => @_each_item @get_unsubscribes, "address"
+  each_unsubscribe: => @_each_item @get_unsubscribes
 
   get_bounces: items_method "/bounces"
-  each_bounce: => @_each_item @get_bounces, "address"
+  each_bounce: => @_each_item @get_bounces
 
   get_complaints: items_method "/complaints"
-  each_complaint: => @_each_item @get_complaints, "address"
+  each_complaint: => @_each_item @get_complaints
 
   -- iterate through every item in basic paging api endpoint
-  _each_item: (getter, paging_field) =>
+  _each_item: (getter, params) =>
     parse_url = require("socket.url").parse
 
     local after_value
 
     coroutine.wrap ->
+      page_params = { limit: 1000 }
+      if params
+        for k,v in pairs params
+          page_params[k] = v
+
+      page, paging = getter @, page_params
+
       while true
-        opts = {
-          limit: 1000
-          page: after_value and "next"
-          [paging_field]: after_value
-        }
-
-        page, paging = getter @, opts
-
         return unless page
         return unless next page
 
@@ -190,9 +187,11 @@ class Mailgun
           coroutine.yield item
 
         return unless paging and paging.next
-        q = parse_query_string parse_url(paging.next).query
-        after_value = q and q[paging_field]
-        return unless after_value
+        res, err = @api_request paging.next
+        return unless res
+
+        page = res.items
+        paging = res.paging
 
   get_or_create_campaign_id: (campaign_name) =>
     local campaign_id

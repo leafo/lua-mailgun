@@ -77,11 +77,17 @@ do
       if domain == nil then
         domain = self.domain
       end
-      local prefix = tostring(self.api_path) .. tostring(domain)
+      local url
+      if path:match("^https?:") then
+        url = path
+      else
+        local prefix = tostring(self.api_path) .. tostring(domain)
+        url = prefix .. path
+      end
       local body = data and encode_query_string(data)
       local out = { }
       local req = {
-        url = prefix .. path,
+        url = url,
         source = body and ltn12.source.string(body) or nil,
         method = data and "POST" or "GET",
         headers = {
@@ -173,40 +179,40 @@ do
         return res, err
       end
     end,
-    get_messages = function(self)
-      local params = encode_query_string({
-        event = "stored"
-      })
-      local res, err = self:api_request("/events?" .. tostring(params))
-      if res then
-        return res.items, res.paging
-      else
-        return nil, err
+    get_events = items_method("/events"),
+    each_event = function(self, opts)
+      if opts == nil then
+        opts = { }
       end
+      opts.limit = opts.limit or 300
+      return self:_each_item(self.get_events, opts)
     end,
     get_unsubscribes = items_method("/unsubscribes"),
     each_unsubscribe = function(self)
-      return self:_each_item(self.get_unsubscribes, "address")
+      return self:_each_item(self.get_unsubscribes)
     end,
     get_bounces = items_method("/bounces"),
     each_bounce = function(self)
-      return self:_each_item(self.get_bounces, "address")
+      return self:_each_item(self.get_bounces)
     end,
     get_complaints = items_method("/complaints"),
     each_complaint = function(self)
-      return self:_each_item(self.get_complaints, "address")
+      return self:_each_item(self.get_complaints)
     end,
-    _each_item = function(self, getter, paging_field)
+    _each_item = function(self, getter, params)
       local parse_url = require("socket.url").parse
       local after_value
       return coroutine.wrap(function()
+        local page_params = {
+          limit = 1000
+        }
+        if params then
+          for k, v in pairs(params) do
+            page_params[k] = v
+          end
+        end
+        local page, paging = getter(self, page_params)
         while true do
-          local opts = {
-            limit = 1000,
-            page = after_value and "next",
-            [paging_field] = after_value
-          }
-          local page, paging = getter(self, opts)
           if not (page) then
             return 
           end
@@ -220,11 +226,12 @@ do
           if not (paging and paging.next) then
             return 
           end
-          local q = parse_query_string(parse_url(paging.next).query)
-          after_value = q and q[paging_field]
-          if not (after_value) then
+          local res, err = self:api_request(paging.next)
+          if not (res) then
             return 
           end
+          page = res.items
+          paging = res.paging
         end
       end)
     end,
