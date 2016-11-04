@@ -156,6 +156,14 @@ class Mailgun
     opts.limit or= 300
     @_each_item @get_events, opts
 
+  get_lists: (opts={})  =>
+    res, err = @api_request "#{@api_path}" .. "lists/pages"
+
+    if res
+      res.items, res
+    else
+      res, err
+
   get_unsubscribes: items_method "/unsubscribes"
   each_unsubscribe: => @_each_item @get_unsubscribes
 

@@ -187,6 +187,14 @@ do
       opts.limit = opts.limit or 300
       return self:_each_item(self.get_events, opts)
     end,
+    get_lists = function(self)
+      local res, err = self:api_request(tostring(self.api_path) .. "lists/pages")
+      if res then
+        return res.items, res
+      else
+        return res, err
+      end
+    end,
     get_unsubscribes = items_method("/unsubscribes"),
     each_unsubscribe = function(self)
       return self:_each_item(self.get_unsubscribes)
