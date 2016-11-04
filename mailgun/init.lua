@@ -44,6 +44,16 @@ items_method = function(path, items_field, paging_field)
     end
   end
 end
+local build_url
+build_url = function(final_path, opts)
+  if opts == nil then
+    opts = { }
+  end
+  if not (next(opts)) then
+    return final_path
+  end
+  return tostring(final_path) .. "?" .. tostring(encode_query_string(opts))
+end
 local Mailgun
 do
   local _class_0
@@ -186,6 +196,18 @@ do
       end
       opts.limit = opts.limit or 300
       return self:_each_item(self.get_events, opts)
+    end,
+    get_lists = function(self, opts)
+      if opts == nil then
+        opts = { }
+      end
+      local path = build_url(tostring(self.api_path) .. "lists/pages", opts)
+      local res, err = self:api_request(path)
+      if res then
+        return res.items, res
+      else
+        return res, err
+      end
     end,
     get_unsubscribes = items_method("/unsubscribes"),
     each_unsubscribe = function(self)

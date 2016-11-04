@@ -24,6 +24,13 @@ items_method = (path, items_field="items", paging_field="paging") ->
     else
       nil, err
 
+build_url = (final_path, opts = {}) ->
+  unless next(opts)
+    return final_path
+  
+  "#{final_path}?#{encode_query_string(opts)}"
+
+
 class Mailgun
   api_path: "https://api.mailgun.net/v3/"
 
@@ -155,6 +162,15 @@ class Mailgun
   each_event: (opts={}) =>
     opts.limit or= 300
     @_each_item @get_events, opts
+
+  get_lists: (opts={})  =>
+    path = build_url "#{@api_path}" .. "lists/pages", opts
+    res, err = @api_request path
+
+    if res
+      res.items, res
+    else
+      res, err
 
   get_unsubscribes: items_method "/unsubscribes"
   each_unsubscribe: => @_each_item @get_unsubscribes
