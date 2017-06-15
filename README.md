@@ -158,6 +158,32 @@ https://documentation.mailgun.com/api-suppressions.html#unsubscribes
 Gets the first page of unsubscribes messages. `opts` is passed as query string
 parameters.
 
+#### `iter = mailgun:each_event(filter_params={})`
+
+https://documentation.mailgun.com/en/latest/api-events.html
+
+Iterates through each event, lazily fetching pages of events as needed. In
+order to stop processing events before all of them have been traversed use
+`break` to exit the loop.
+
+```
+for e in mailgun:each_unsubscribe() do
+  print(e.event)
+end
+```
+
+Each event is a plain Lua table with the same format provided by the API :
+<https://documentation.mailgun.com/en/latest/api-events.html#event-structure>
+
+Uses `limit` of 300 by default, which will fetch 300 events at a time for each page.
+
+#### `result = mailgun:get_events(params={})`
+
+https://documentation.mailgun.com/en/latest/api-events.html
+
+Issues API call to `GET /<domain>/events` with provided parameters. If you want
+to iterate over events see `each_event`.
+
 #### `iter = mailgun:each_unsubscribe()`
 
 Iterates through each message (fetching each page as needed)
