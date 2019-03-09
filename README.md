@@ -59,6 +59,7 @@ The following options are valid:
 * `domain` - the domain to use for API requests **required**
 * `api_key` - the API key to authenticate requests **required**
 * `default_sender` - the sender to use for `send_email` when a sender is not provided *optional*
+* `http_provider` - alternative http function to use for requests. e.g. `require("http.compat.socket")` for cqueues
 
 The value of `default_sender` has a default created from the `domain` like
 this: `{domain} <postmaster@{domain}>`.
