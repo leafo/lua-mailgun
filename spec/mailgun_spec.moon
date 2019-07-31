@@ -170,6 +170,8 @@ describe "mailgun", ->
           headers: {
             "Reply-To": "leaf@leafo.zone"
           }
+
+          "v:test": "world"
         }
 
         req = unpack http_requests
@@ -187,6 +189,7 @@ describe "mailgun", ->
           "o:tag": {
             "hello", "world"
           }
+          "v:test": "world"
         }, parse_body req
 
 

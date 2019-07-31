@@ -159,6 +159,11 @@ do
           data["o:campaign"] = c
         end
       end
+      for k, v in pairs(opts) do
+        if k:match("^[%w]+:") then
+          data[k] = v
+        end
+      end
       return self:api_request("/messages", data, domain)
     end,
     create_campaign = function(self, name)

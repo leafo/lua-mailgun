@@ -133,6 +133,10 @@ class Mailgun
     if c = opts.campaign
       data["o:campaign"] = c
 
+    for k, v in pairs opts
+      if k\match "^[%w]+:"
+        data[k] = v
+
     @api_request "/messages", data, domain
 
   create_campaign: (name) =>
