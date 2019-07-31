@@ -1,7 +1,7 @@
 .PHONY: local lint build
 
 local: build
-	luarocks make --local mailgun-dev-1.rockspec
+	luarocks --lua-version=5.1 make --local mailgun-dev-1.rockspec
 
 build: 
 	moonc mailgun
