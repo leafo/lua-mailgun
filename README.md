@@ -56,10 +56,10 @@ local m = Mailgun({
 
 The following options are valid:
 
-* `domain` - the domain to use for API requests **required**
-* `api_key` - the API key to authenticate requests **required**
-* `default_sender` - the sender to use for `send_email` when a sender is not provided *optional*
-* `http` - set the HTTP client
+* `domain` - the domain to use for API requests (**required**)
+* `api_key` - the API key to authenticate requests (**required**)
+* `default_sender` - the sender to use for `send_email` when a sender is not provided (*optional*)
+* `http` - set the HTTP client (*optional*)
 
 The value of `default_sender` has a default created from the `domain` like
 this: `{domain} <postmaster@{domain}>`.
