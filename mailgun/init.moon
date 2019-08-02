@@ -24,6 +24,10 @@ items_method = (path, items_field="items", paging_field="paging") ->
     else
       nil, err
 
+to_hex = do
+  hex_c = (c) -> string.format "%02x", string.byte c
+  (str) -> (str\gsub ".", hex_c)
+
 class Mailgun
   api_path: "https://api.mailgun.net/v3/"
 
@@ -210,6 +214,22 @@ class Mailgun
 
     campaign_id
 
-  get_stats: =>
+  verify_webhook_signature: (token, timestamp, signature) =>
+    assert type(token) == "string", "invalid token"
+    assert type(timestamp) == "string", "invalid timestamp"
+    assert type(signature) == "string", "invalid signature"
+
+    secret = @api_key\gsub "^api:", "" -- username may be baked into api key
+    to_verify = "#{timestamp}#{token}"
+
+    openssl_hmac = require "openssl.hmac"
+
+    hmac = openssl_hmac.new secret, "sha256"
+    expected = to_hex (hmac\final to_verify)
+
+    unless expected == signature
+      return nil, "invalid signature"
+
+    true
 
 { :Mailgun, VERSION: "1.1.0" }

@@ -44,6 +44,16 @@ items_method = function(path, items_field, paging_field)
     end
   end
 end
+local to_hex
+do
+  local hex_c
+  hex_c = function(c)
+    return string.format("%02x", string.byte(c))
+  end
+  to_hex = function(str)
+    return (str:gsub(".", hex_c))
+  end
+end
 local Mailgun
 do
   local _class_0
@@ -255,7 +265,20 @@ do
       end
       return campaign_id
     end,
-    get_stats = function(self) end
+    verify_webhook_signature = function(self, token, timestamp, signature)
+      assert(type(token) == "string", "invalid token")
+      assert(type(timestamp) == "string", "invalid timestamp")
+      assert(type(signature) == "string", "invalid signature")
+      local secret = self.api_key:gsub("^api:", "")
+      local to_verify = tostring(timestamp) .. tostring(token)
+      local openssl_hmac = require("openssl.hmac")
+      local hmac = openssl_hmac.new(secret, "sha256")
+      local expected = to_hex((hmac:final(to_verify)))
+      if not (expected == signature) then
+        return nil, "invalid signature"
+      end
+      return true
+    end
   }
   _base_0.__index = _base_0
   _class_0 = setmetatable({

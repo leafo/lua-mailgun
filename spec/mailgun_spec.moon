@@ -61,6 +61,29 @@ describe "mailgun", ->
       api_key: "hello-world"
     }
 
+  describe "verify_webhook_signature", ->
+    local client
+
+    before_each ->
+      import Mailgun from require "mailgun"
+      client = Mailgun {
+        domain: "leafo.net"
+        api_key: "api:hello-world"
+      }
+
+    it "valid signature", ->
+      assert client\verify_webhook_signature "mytoken", "1564705897",
+        "18ced557f769caaab4676366036594dc2dae9d0dca9871290e872b24c6dc6aff"
+
+    it "invalid signature", ->
+      assert.same {
+        nil, "invalid signature"
+      }, {
+        client\verify_webhook_signature "mytoken", "1564705897",
+          "18ced557f769caaab4676366036594dc2dae9d0dca9871290e872b24c6dc6afg"
+      }
+
+
   describe "with mailgun", ->
     local mailgun
     before_each ->
