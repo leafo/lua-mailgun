@@ -59,19 +59,26 @@ The following options are valid:
 * `domain` - the domain to use for API requests **required**
 * `api_key` - the API key to authenticate requests **required**
 * `default_sender` - the sender to use for `send_email` when a sender is not provided *optional*
+* `http` - set the HTTP client
 
 The value of `default_sender` has a default created from the `domain` like
 this: `{domain} <postmaster@{domain}>`.
 
+### HTTP Client
+
+If a HTTP client is not specified, this library will pick `lapis.nginx.http`
+when inside of Nginx (OpenResty), otherwise it will fall back on `ssl.https`
+(LuaSocket & LuaSec)
+
+The client can be changed by providing an `http` option to the constructor. If
+a string is passed, it will be required as a module name. For example, you can
+use luahttp by passing in `http = "http.compat.socket"`
+
+Alternatively, a function can be passed in. The function will be called once
+and the return value will be used as the http module. (It should be a table
+with a request function that works like luasocket)
+
 ### Methods
-
-#### `mailgun:verify_webhook_signature(timestamp, token, signature)`
-
-Verify signature of a webhook call using the stored API key as described here: <https://documentation.mailgun.com/en/latest/user_manual.html#webhooks>
-
-Returns `true` if the signature is validated, otherwise returns `nil` and an error message.
-
-If any of the arguments aren't provided, an error is thrown.
 
 #### `mailgun:send_email(opts={})`
 
@@ -233,6 +240,20 @@ Iterates through each complaint (fetching each page as needed). Similar to
 Returns a new instance of the API client configured the same way, but with the
 domain replaced with the provided domain. If you have multiple domains on your
 account you can use this to switch to them for any of the `get_` methods.
+
+#### `mailgun:verify_webhook_signature(timestamp, token, signature)`
+
+Verify signature of a webhook call using the stored API key as described here: <https://documentation.mailgun.com/en/latest/user_manual.html#webhooks>
+
+Returns `true` if the signature is validated, otherwise returns `nil` and an error message.
+
+If any of the arguments aren't provided, an error is thrown.
+
+#### `mailgun:validate_email(email_address)`
+
+Look up email using the email validation service described here: <https://documentation.mailgun.com/en/latest/api-email-validation.html#email-validation>
+
+Returns a Lua object with results of validation
 
 
 # Changelog
