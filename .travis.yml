@@ -16,6 +16,7 @@ before_install:
 
 install:
   - luarocks install luaossl # optional dep for webhook test
+  - luarocks install lua-cjson 2.1.0 # fix for broken cjson library: https://github.com/openresty/lua-cjson/issues/36
   - luarocks install busted
   - luarocks install moonscript
   - luarocks make
