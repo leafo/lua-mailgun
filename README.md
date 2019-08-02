@@ -65,6 +65,14 @@ this: `{domain} <postmaster@{domain}>`.
 
 ### Methods
 
+#### `mailgun:verify_webhook_signature(timestamp, token, signature)`
+
+Verify signature of a webhook call using the stored API key as described here: <https://documentation.mailgun.com/en/latest/user_manual.html#webhooks>
+
+Returns `true` if the signature is validated, otherwise returns `nil` and an error message.
+
+If any of the arguments aren't provided, an error is thrown.
+
 #### `mailgun:send_email(opts={})`
 
 The following are required options:
@@ -85,6 +93,7 @@ Optional fields:
 * `vars` - table of recipient specific variables where the key is the recipient and value is a table of vars
 * `headers` - a table of additional headers to provide
 * `campaign` - the campaign id of the campaign the email is part of (see `get_or_create_campaign_id`)
+* `v:{NAME}` - add any number of user variables with the name `{NAME}`, ie. `v:user_id`
 
 ##### Recipient varaibles
 

@@ -214,9 +214,9 @@ class Mailgun
 
     campaign_id
 
-  verify_webhook_signature: (token, timestamp, signature) =>
-    assert type(token) == "string", "invalid token"
+  verify_webhook_signature: (timestamp, token, signature) =>
     assert type(timestamp) == "string", "invalid timestamp"
+    assert type(token) == "string", "invalid token"
     assert type(signature) == "string", "invalid signature"
 
     secret = @api_key\gsub "^api:", "" -- username may be baked into api key
@@ -228,7 +228,7 @@ class Mailgun
     expected = to_hex (hmac\final to_verify)
 
     unless expected == signature
-      return nil, "invalid signature"
+      return nil, "signature mismatch"
 
     true
 

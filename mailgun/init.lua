@@ -265,9 +265,9 @@ do
       end
       return campaign_id
     end,
-    verify_webhook_signature = function(self, token, timestamp, signature)
-      assert(type(token) == "string", "invalid token")
+    verify_webhook_signature = function(self, timestamp, token, signature)
       assert(type(timestamp) == "string", "invalid timestamp")
+      assert(type(token) == "string", "invalid token")
       assert(type(signature) == "string", "invalid signature")
       local secret = self.api_key:gsub("^api:", "")
       local to_verify = tostring(timestamp) .. tostring(token)
@@ -275,7 +275,7 @@ do
       local hmac = openssl_hmac.new(secret, "sha256")
       local expected = to_hex((hmac:final(to_verify)))
       if not (expected == signature) then
-        return nil, "invalid signature"
+        return nil, "signature mismatch"
       end
       return true
     end

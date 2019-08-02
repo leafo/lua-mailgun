@@ -72,14 +72,14 @@ describe "mailgun", ->
       }
 
     it "valid signature", ->
-      assert client\verify_webhook_signature "mytoken", "1564705897",
+      assert client\verify_webhook_signature "1564705897", "mytoken",
         "18ced557f769caaab4676366036594dc2dae9d0dca9871290e872b24c6dc6aff"
 
-    it "invalid signature", ->
+    it "signature mismatch", ->
       assert.same {
-        nil, "invalid signature"
+        nil, "signature mismatch"
       }, {
-        client\verify_webhook_signature "mytoken", "1564705897",
+        client\verify_webhook_signature "1564705897", "mytoken",
           "18ced557f769caaab4676366036594dc2dae9d0dca9871290e872b24c6dc6afg"
       }
 
