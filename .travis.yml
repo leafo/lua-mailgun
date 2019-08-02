@@ -15,6 +15,7 @@ before_install:
   - source .travis/setenv_lua.sh
 
 install:
+  - luarocks install luaossl # optional dep for webhook test
   - luarocks install busted
   - luarocks install moonscript
   - luarocks make
