@@ -58,6 +58,7 @@ The following options are valid:
 
 * `domain` - the domain to use for API requests (**required**)
 * `api_key` - the API key to authenticate requests (**required**)
+* `webhook_signing_key` - key used for webhook signature verification, defaults to api key without username (*optional*)
 * `default_sender` - the sender to use for `send_email` when a sender is not provided (*optional*)
 * `http` - set the HTTP client (*optional*)
 

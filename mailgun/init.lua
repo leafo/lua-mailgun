@@ -270,7 +270,7 @@ do
       assert(type(timestamp) == "string", "invalid timestamp")
       assert(type(token) == "string", "invalid token")
       assert(type(signature) == "string", "invalid signature")
-      local secret = self.api_key:gsub("^api:", "")
+      local secret = self.webhook_signing_key or self.api_key:gsub("^api:", "")
       local to_verify = tostring(timestamp) .. tostring(token)
       local openssl_hmac = require("openssl.hmac")
       local hmac = openssl_hmac.new(secret, "sha256")
@@ -298,6 +298,7 @@ do
       self.http_provider = opts.http
       self.domain = opts.domain
       self.api_key = opts.api_key
+      self.webhook_signing_key = opts.webhook_signing_key
       self.default_sender = opts.default_sender or tostring(opts.domain) .. " <postmaster@" .. tostring(opts.domain) .. ">"
     end,
     __base = _base_0,

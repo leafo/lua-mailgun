@@ -39,6 +39,7 @@ class Mailgun
     @http_provider = opts.http
     @domain = opts.domain
     @api_key = opts.api_key
+    @webhook_signing_key = opts.webhook_signing_key
     @default_sender = opts.default_sender or "#{opts.domain} <postmaster@#{opts.domain}>"
 
   -- create a new instance on another domain
@@ -220,7 +221,7 @@ class Mailgun
     assert type(token) == "string", "invalid token"
     assert type(signature) == "string", "invalid signature"
 
-    secret = @api_key\gsub "^api:", "" -- username may be baked into api key
+    secret = @webhook_signing_key or @api_key\gsub "^api:", "" -- username baked into api key
     to_verify = "#{timestamp}#{token}"
 
     openssl_hmac = require "openssl.hmac"
