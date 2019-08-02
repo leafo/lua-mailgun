@@ -29,7 +29,8 @@ to_hex = do
   (str) -> (str\gsub ".", hex_c)
 
 class Mailgun
-  api_path: "https://api.mailgun.net/v3/"
+  api_prefix: "https://api.mailgun.net"
+  api_version: "v3"
 
   new: (opts={}) =>
     assert opts.domain, "missing `domain` from opts"
@@ -66,7 +67,7 @@ class Mailgun
     url = if path\match "^https?:"
       path
     else
-      prefix = "#{@api_path}#{domain}"
+      prefix = "#{@api_prefix}/#{@api_version}/#{domain}"
       prefix .. path
 
     body = data and encode_query_string data
@@ -231,5 +232,9 @@ class Mailgun
       return nil, "signature mismatch"
 
     true
+
+  validate_email: (address) =>
+    assert type(address) == "string", "invalid address"
+    @api_request "#{@api_prefix}/v4/address/validate?#{encode_query_string(:address)}"
 
 { :Mailgun, VERSION: "1.1.0" }

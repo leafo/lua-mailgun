@@ -58,7 +58,8 @@ local Mailgun
 do
   local _class_0
   local _base_0 = {
-    api_path = "https://api.mailgun.net/v3/",
+    api_prefix = "https://api.mailgun.net",
+    api_version = "v3",
     for_domain = function(self, domain)
       return Mailgun({
         domain = domain,
@@ -91,7 +92,7 @@ do
       if path:match("^https?:") then
         url = path
       else
-        local prefix = tostring(self.api_path) .. tostring(domain)
+        local prefix = tostring(self.api_prefix) .. "/" .. tostring(self.api_version) .. "/" .. tostring(domain)
         url = prefix .. path
       end
       local body = data and encode_query_string(data)
@@ -278,6 +279,12 @@ do
         return nil, "signature mismatch"
       end
       return true
+    end,
+    validate_email = function(self, address)
+      assert(type(address) == "string", "invalid address")
+      return self:api_request(tostring(self.api_prefix) .. "/v4/address/validate?" .. tostring(encode_query_string({
+        address = address
+      })))
     end
   }
   _base_0.__index = _base_0
