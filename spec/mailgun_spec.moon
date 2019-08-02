@@ -284,7 +284,7 @@ describe "mailgun", ->
         {id: 999}
       },[u for u in mailgun\each_unsubscribe!]
 
-    it "iterates unsubscribes with two pages #ddd", ->
+    it "iterates unsubscribes with two pages", ->
       -- second page
       stub_http "/unsubscribes.-page=next", ->
         200, [[ {
@@ -305,5 +305,13 @@ describe "mailgun", ->
         {id: 23}
       },[u for u in mailgun\each_unsubscribe!]
 
+    it "validates email", ->
+      stub_http ".", -> 200, [[{}]]
+      mailgun\validate_email "leafo@example.com"
+
+      assert.same 1, #http_requests
+      req = unpack http_requests
+      assert.same "GET", req.method
+      assert.same "https://api.mailgun.net/v4/address/validate?address=leafo%40example%2ecom", req.url
 
 
