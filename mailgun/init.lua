@@ -207,13 +207,22 @@ do
     each_unsubscribe = function(self)
       return self:_each_item(self.get_unsubscribes)
     end,
+    get_unsubscribe = function(self, email)
+      return self:api_request("/unsubscribes/" .. tostring(email))
+    end,
     get_bounces = items_method("/bounces"),
     each_bounce = function(self)
       return self:_each_item(self.get_bounces)
     end,
+    get_bounce = function(self, email)
+      return self:api_request("/bounces/" .. tostring(email))
+    end,
     get_complaints = items_method("/complaints"),
     each_complaint = function(self)
       return self:_each_item(self.get_complaints)
+    end,
+    get_complaint = function(self, email)
+      return self:api_request("/complaints/" .. tostring(email))
     end,
     _each_item = function(self, getter, params)
       local parse_url = require("socket.url").parse

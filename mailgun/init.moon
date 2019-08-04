@@ -168,12 +168,15 @@ class Mailgun
 
   get_unsubscribes: items_method "/unsubscribes"
   each_unsubscribe: => @_each_item @get_unsubscribes
+  get_unsubscribe: (email) => @api_request "/unsubscribes/#{email}"
 
   get_bounces: items_method "/bounces"
   each_bounce: => @_each_item @get_bounces
+  get_bounce: (email) => @api_request "/bounces/#{email}"
 
   get_complaints: items_method "/complaints"
   each_complaint: => @_each_item @get_complaints
+  get_complaint: (email) => @api_request "/complaints/#{email}"
 
   -- iterate through every item in basic paging api endpoint
   _each_item: (getter, params) =>
