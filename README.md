@@ -103,7 +103,7 @@ Optional fields:
 * `campaign` - the campaign id of the campaign the email is part of (see `get_or_create_campaign_id`)
 * `v:{NAME}` - add any number of user variables with the name `{NAME}`, ie. `v:user_id`
 
-##### Recipient varaibles
+##### Recipient variables
 
 Using recipient variables you can bulk send many emails in a single API call.
 You can parameterize your email address with different variables for each
@@ -153,7 +153,7 @@ mailgun:send_email({
 
 #### `mailgun:create_campaign(name)`
 
-Creates a new campaign named `name`. Retruns the campaign object
+Creates a new campaign named `name`. Returns the campaign object
 
 #### `campaigns = mailgun:get_campaigns()`
 
@@ -259,6 +259,6 @@ Returns a Lua object with results of validation
 
 # Changelog
 
-* 1.1.0 — 2016-04-8 — Added methods to fetch supressions, added `for_domain`
+* 1.1.0 — 2016-04-8 — Added methods to fetch suppressions, added `for_domain`
 * 1.0.0 — 2016-02-6 — Initial release
 
