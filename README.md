@@ -1,6 +1,6 @@
 # mailgun
 
-[![Build Status](https://travis-ci.org/leafo/lua-mailgun.svg?branch=master)](https://travis-ci.org/leafo/lua-mailgun)
+![test](https://github.com/leafo/lua-mailgun/workflows/test/badge.svg)
 
 A Lua library for sending emails and interacting with the
 [Mailgun](https://mailgun.com/) API. Compatible with OpenResty via Lapis HTTP
