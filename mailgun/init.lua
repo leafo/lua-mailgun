@@ -121,7 +121,7 @@ do
         res = "invalid response"
       end
       if status ~= 200 then
-        return nil, res.message or res
+        return nil, res.message or res, status
       end
       return res
     end,

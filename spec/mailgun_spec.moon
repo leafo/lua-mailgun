@@ -219,13 +219,31 @@ describe "mailgun", ->
       it "handles server error", ->
         stub_http ".", send_fail
 
-        res, err = mailgun\send_email {
+        res, err, status = mailgun\send_email {
           to: { "you2@example.com", "you3@example.com" }
           subject: "Howdy"
           body: "this email will fail"
         }
 
-        assert.same {nil, "'from' parameter is missing"}, {res, err}
+        assert.same {nil, "'from' parameter is missing", 400}, {res, err, status}
+
+      it "handles network error", ->
+        import Mailgun from require "mailgun"
+        mailgun = Mailgun {
+          domain: "leafo.net"
+          api_key: "hello-world"
+          http: -> {
+            request: -> nil, "timeout"
+          }
+        }
+
+        res, err, status = mailgun\send_email {
+          to: "you@example.com"
+          subject: "Howdy"
+          body: "this email will time out"
+        }
+
+        assert.same {nil, "invalid response", "timeout"}, {res, err, status}
 
     it "creates campaign", ->
       stub_http ".", ->

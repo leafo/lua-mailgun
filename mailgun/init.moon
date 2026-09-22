@@ -99,7 +99,7 @@ class Mailgun
       res = "invalid response"
 
     if status != 200
-      return nil, res.message or res
+      return nil, res.message or res, status
 
     res
 
