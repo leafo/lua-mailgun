@@ -164,11 +164,6 @@ future version:
 * `campaigns = mailgun:get_campaigns()`
 * `mailgun:get_or_create_campaign_id(name)`
 
-#### `messages, paging = mailgun:get_messages()`
-
-Gets the first page of stored messages (this uses the events API). The paging
-object includes the urls for fetching subsequent pages.
-
 #### `unsubscribes, paging = mailgun:get_unsubscribes(opts={})`
 
 https://documentation.mailgun.com/api-suppressions.html#unsubscribes
@@ -176,16 +171,35 @@ https://documentation.mailgun.com/api-suppressions.html#unsubscribes
 Gets the first page of unsubscribes messages. `opts` is passed as query string
 parameters.
 
+#### `items, pagination = mailgun:get_logs(params={})`
+
+https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/logs
+
+Fetches a page of message logs. `params` is sent as the JSON request body.
+Results are limited to the client's domain unless you provide a `filter`.
+
+#### `iter = mailgun:each_log(params={})`
+
+Iterates through each log entry, fetching pages as needed.
+
+```lua
+for log in mailgun:each_log({ events = {"failed"}, duration = "7d" }) do
+  print(log.event, log.recipient)
+end
+```
+
 #### `iter = mailgun:each_event(filter_params={})`
 
 https://documentation.mailgun.com/en/latest/api-events.html
+
+Deprecated by Mailgun in favor of the Logs API, see `each_log`.
 
 Iterates through each event, lazily fetching pages of events as needed. In
 order to stop processing events before all of them have been traversed use
 `break` to exit the loop.
 
-```
-for e in mailgun:each_unsubscribe() do
+```lua
+for e in mailgun:each_event() do
   print(e.event)
 end
 ```
@@ -198,6 +212,8 @@ Uses `limit` of 300 by default, which will fetch 300 events at a time for each p
 #### `result = mailgun:get_events(params={})`
 
 https://documentation.mailgun.com/en/latest/api-events.html
+
+Deprecated by Mailgun in favor of the Logs API, see `get_logs`.
 
 Issues API call to `GET /<domain>/events` with provided parameters. If you want
 to iterate over events see `each_event`.

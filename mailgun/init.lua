@@ -102,14 +102,20 @@ do
         url = prefix .. path
       end
       local body = data and encode_query_string(data)
+      return self:_http_request(url, body, "application/x-www-form-urlencoded")
+    end,
+    api_json_request = function(self, path, data)
+      return self:_http_request(tostring(self.api_prefix) .. tostring(path), json.encode(data), "application/json")
+    end,
+    _http_request = function(self, url, body, content_type)
       local out = { }
       local req = {
         url = url,
         source = body and ltn12.source.string(body) or nil,
-        method = data and "POST" or "GET",
+        method = body and "POST" or "GET",
         headers = {
           ["Host"] = url:match("^https?://([^/]+)"),
-          ["Content-type"] = body and "application/x-www-form-urlencoded" or nil,
+          ["Content-type"] = body and content_type or nil,
           ["Content-length"] = body and #body or nil,
           ["Authorization"] = "Basic " .. encode_base64(self.api_key)
         },
@@ -216,6 +222,74 @@ do
       end
       opts.limit = opts.limit or 300
       return self:_each_item(self.get_events, opts)
+    end,
+    get_logs = function(self, params)
+      if params == nil then
+        params = { }
+      end
+      local body
+      do
+        local _tbl_0 = { }
+        for k, v in pairs(params) do
+          _tbl_0[k] = v
+        end
+        body = _tbl_0
+      end
+      body.filter = body.filter or {
+        AND = {
+          {
+            attribute = "domain",
+            comparator = "=",
+            values = {
+              {
+                label = self.domain,
+                value = self.domain
+              }
+            }
+          }
+        }
+      }
+      local res, err, status = self:api_json_request("/v1/analytics/logs", body)
+      if res then
+        return res.items, res.pagination
+      else
+        return nil, err, status
+      end
+    end,
+    each_log = function(self, params)
+      if params == nil then
+        params = { }
+      end
+      do
+        local _tbl_0 = { }
+        for k, v in pairs(params) do
+          _tbl_0[k] = v
+        end
+        params = _tbl_0
+      end
+      do
+        local _tbl_0 = { }
+        for k, v in pairs(params.pagination or { }) do
+          _tbl_0[k] = v
+        end
+        params.pagination = _tbl_0
+      end
+      return coroutine.wrap(function()
+        while true do
+          local items, pagination = self:get_logs(params)
+          if not (items and next(items)) then
+            return 
+          end
+          for _index_0 = 1, #items do
+            local item = items[_index_0]
+            coroutine.yield(item)
+          end
+          if not (pagination and pagination.next) then
+            return 
+          end
+          params.pagination.token = pagination.next
+        end
+      end)
     end,
     get_unsubscribes = items_method("/unsubscribes"),
     each_unsubscribe = function(self)

@@ -340,6 +340,78 @@ describe "mailgun", ->
       res = assert mailgun\get_or_create_campaign_id "cool"
       assert.same 123, res
 
+    describe "logs", ->
+      json = require "cjson"
+
+      read_json = (req) ->
+        out = {}
+        while true
+          part = req.source!
+          break unless part
+          table.insert out, part
+        json.decode table.concat out
+
+      it "gets logs for domain", ->
+        stub_http "/v1/analytics/logs", ->
+          200, [[ { "items": [{"id": 1}], "pagination": {"next": "abc"} } ]]
+
+        items, pagination = mailgun\get_logs events: {"failed"}
+        assert.same { {id: 1} }, items
+        assert.same { next: "abc" }, pagination
+
+        req = unpack http_requests
+        assert.same "POST", req.method
+        assert.same "https://api.mailgun.net/v1/analytics/logs", req.url
+        assert.same "application/json", req.headers["Content-type"]
+
+        assert.same {
+          events: {"failed"}
+          filter: {
+            AND: {
+              {
+                attribute: "domain"
+                comparator: "="
+                values: { {label: "leafo.net", value: "leafo.net"} }
+              }
+            }
+          }
+        }, read_json req
+
+      it "uses provided filter", ->
+        stub_http ".", -> 200, [[ { "items": [] } ]]
+
+        mailgun\get_logs filter: { AND: {} }
+        assert.same { filter: { AND: {} } }, read_json unpack http_requests
+
+      it "handles error", ->
+        stub_http ".", -> 401, [[ { "message": "Forbidden" } ]]
+        assert.same {nil, "Forbidden", 401}, { mailgun\get_logs! }
+
+      it "iterates logs across pages", ->
+        pages = {
+          [[ { "items": [{"id": 1}, {"id": 2}], "pagination": {"next": "page2"} } ]]
+          [[ { "items": [{"id": 3}], "pagination": {"next": "page3"} } ]]
+          [[ { "items": [], "pagination": {"next": "page4"} } ]]
+        }
+
+        stub_http ".", -> 200, pages[#http_requests]
+
+        params = { pagination: { limit: 2 } }
+
+        assert.same {
+          {id: 1}
+          {id: 2}
+          {id: 3}
+        }, [l for l in mailgun\each_log params]
+
+        assert.same {
+          { limit: 2 }
+          { limit: 2, token: "page2" }
+          { limit: 2, token: "page3" }
+        }, [read_json(req).pagination for req in *http_requests]
+
+        assert.same { pagination: { limit: 2 } }, params
+
     it "get unsubscribes", ->
       stub_http "/unsubscribes", ->
         200, [[ { "items": [{"id": 123}] } ]]

@@ -84,15 +84,21 @@ class Mailgun
       prefix .. path
 
     body = data and encode_query_string data
+    @_http_request url, body, "application/x-www-form-urlencoded"
 
+  -- for endpoints outside of the domain scoped v3 API that take JSON bodies
+  api_json_request: (path, data) =>
+    @_http_request "#{@api_prefix}#{path}", json.encode(data), "application/json"
+
+  _http_request: (url, body, content_type) =>
     out = {}
     req = {
       :url
       source: body and ltn12.source.string(body) or nil
-      method: data and "POST" or "GET"
+      method: body and "POST" or "GET"
       headers: {
         "Host": url\match "^https?://([^/]+)"
-        "Content-type": body and "application/x-www-form-urlencoded" or nil
+        "Content-type": body and content_type or nil
         "Content-length": body and #body or nil
         "Authorization": "Basic " .. encode_base64 @api_key
       }
@@ -189,6 +195,42 @@ class Mailgun
   each_event: (opts={}) =>
     opts.limit or= 300
     @_each_item @get_events, opts
+
+  -- Logs are account wide, so results are limited to this client's domain
+  -- unless a filter is provided
+  get_logs: (params={}) =>
+    body = {k,v for k,v in pairs params}
+    body.filter or= {
+      AND: {
+        {
+          attribute: "domain"
+          comparator: "="
+          values: { {label: @domain, value: @domain} }
+        }
+      }
+    }
+
+    res, err, status = @api_json_request "/v1/analytics/logs", body
+
+    if res
+      res.items, res.pagination
+    else
+      nil, err, status
+
+  each_log: (params={}) =>
+    params = {k,v for k,v in pairs params}
+    params.pagination = {k,v for k,v in pairs params.pagination or {}}
+
+    coroutine.wrap ->
+      while true
+        items, pagination = @get_logs params
+        return unless items and next items
+
+        for item in *items
+          coroutine.yield item
+
+        return unless pagination and pagination.next
+        params.pagination.token = pagination.next
 
   get_unsubscribes: items_method "/unsubscribes"
   each_unsubscribe: => @_each_item @get_unsubscribes
