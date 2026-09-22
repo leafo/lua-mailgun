@@ -148,6 +148,7 @@ class Mailgun
     if opts.track_opens
       data["o:tracking-opens"] = "yes"
 
+    -- deprecated, Mailgun dropped campaigns in favor of tags
     if c = opts.campaign
       data["o:campaign"] = c
 
@@ -157,6 +158,7 @@ class Mailgun
 
     @api_request "/messages", data, domain
 
+  -- deprecated, Mailgun dropped campaigns in favor of tags
   create_campaign: (name) =>
     res, err = @api_request "/campaigns", { :name }
 
@@ -165,6 +167,7 @@ class Mailgun
     else
       res, err
 
+  -- deprecated
   get_campaigns: =>
     res, err = @api_request "/campaigns"
 
@@ -218,6 +221,7 @@ class Mailgun
         page = res.items
         paging = res.paging
 
+  -- deprecated
   get_or_create_campaign_id: (campaign_name) =>
     local campaign_id
 

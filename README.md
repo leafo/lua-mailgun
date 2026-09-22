@@ -60,8 +60,8 @@ The following options are valid:
 * `api_key` - the API key to authenticate requests (**required**)
 * `webhook_signing_key` - key used for webhook signature verification, defaults to api key without username (*optional*)
 * `default_sender` - the sender to use for `send_email` when a sender is not provided (*optional*)
-* `region` - set to `"eu"` to use Mailgun's EU region endpoint (`https://api.eu.mailgun.net`) (*optional*)
-* `api_prefix` - override the API base URL entirely, takes precedence over `region` (*optional*)
+* `region` - set to `"eu"` for accounts in Mailgun's EU region (*optional*)
+* `api_prefix` - override the API base URL, takes precedence over `region` (*optional*)
 * `http` - set the HTTP client (*optional*)
 
 The value of `default_sender` has a default created from the `domain` like
@@ -102,7 +102,7 @@ Optional fields:
 * `tags` - an array table of tags to apply to message
 * `vars` - table of recipient specific variables where the key is the recipient and value is a table of vars
 * `headers` - a table of additional headers to provide
-* `campaign` - the campaign id of the campaign the email is part of (see `get_or_create_campaign_id`)
+* `campaign` - deprecated, use `tags`
 * `v:{NAME}` - add any number of user variables with the name `{NAME}`, ie. `v:user_id`
 
 ##### Recipient variables
@@ -153,17 +153,14 @@ mailgun:send_email({
 })
 ```
 
-#### `mailgun:create_campaign(name)`
+#### Campaigns (deprecated)
 
-Creates a new campaign named `name`. Returns the campaign object
+Mailgun dropped campaigns in favor of tags. These methods will be removed in a
+future version:
 
-#### `campaigns = mailgun:get_campaigns()`
-
-Gets all the campaigns that are available
-
-#### `mailgun:get_or_create_campaign_id(name)`
-
-Gets a campaign id for a campaign by name. If it doesn't exist yet a new one is created.
+* `mailgun:create_campaign(name)`
+* `campaigns = mailgun:get_campaigns()`
+* `mailgun:get_or_create_campaign_id(name)`
 
 #### `messages, paging = mailgun:get_messages()`
 
@@ -241,9 +238,7 @@ Iterates through each complaint (fetching each page as needed). Similar to
 #### `new_mailgun = mailgun:for_domain(domain)`
 
 Returns a new instance of the API client configured the same way, but with the
-domain replaced with the provided domain. The API key, region/`api_prefix`,
-webhook signing key, and HTTP client are carried over; `default_sender` is
-regenerated from the new domain. If you have multiple domains on your
+domain replaced with the provided domain. If you have multiple domains on your
 account you can use this to switch to them for any of the `get_` methods.
 
 #### `mailgun:verify_webhook_signature(timestamp, token, signature)`
