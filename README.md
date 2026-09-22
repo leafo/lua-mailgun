@@ -58,7 +58,7 @@ The following options are valid:
 
 * `domain` - the domain to use for API requests (**required**)
 * `api_key` - the API key to authenticate requests (**required**)
-* `webhook_signing_key` - key used for webhook signature verification, defaults to api key without username (*optional*)
+* `webhook_signing_key` - the HTTP webhook signing key from the Mailgun dashboard, needed for `verify_webhook_signature`. Falls back to the API key, which usually won't match on newer accounts (*optional*)
 * `default_sender` - the sender to use for `send_email` when a sender is not provided (*optional*)
 * `region` - set to `"eu"` for accounts in Mailgun's EU region (*optional*)
 * `api_prefix` - override the API base URL, takes precedence over `region` (*optional*)
@@ -261,7 +261,7 @@ account you can use this to switch to them for any of the `get_` methods.
 
 #### `mailgun:verify_webhook_signature(timestamp, token, signature)`
 
-Verify signature of a webhook call using the stored API key as described here: <https://documentation.mailgun.com/en/latest/user_manual.html#webhooks>
+Verify signature of a webhook call using `webhook_signing_key` as described here: <https://documentation.mailgun.com/docs/mailgun/user-manual/webhooks/securing-webhooks>
 
 Returns `true` if the signature is validated, otherwise returns `nil` and an error message.
 
