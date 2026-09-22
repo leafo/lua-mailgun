@@ -308,4 +308,4 @@ class Mailgun
     assert type(address) == "string", "invalid address"
     @api_request "#{@api_prefix}/v4/address/validate?#{encode_query_string(:address)}"
 
-{ :Mailgun, VERSION: "1.2.0" }
+{ :Mailgun, VERSION: "1.3.0" }
