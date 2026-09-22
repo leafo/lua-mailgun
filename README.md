@@ -88,8 +88,8 @@ with a request function that works like LuaSocket)
 The following are required options:
 
 * `to` - the recipient(s) of the email. Pass an array table to send to multiple recipients
-* `subject` - the subject line of the email
-* `body` - the body of the email
+* `subject` - the subject line of the email, optional when using `template`
+* `body` - the body of the email, optional when using `template`
 
 Optional fields:
 
@@ -102,6 +102,8 @@ Optional fields:
 * `tags` - an array table of tags to apply to message
 * `vars` - table of recipient specific variables where the key is the recipient and value is a table of vars
 * `headers` - a table of additional headers to provide
+* `template` - name of a template stored in Mailgun to render the email from
+* `template_vars` - table of variables to render the template with
 * `campaign` - deprecated, use `tags`
 * `v:{NAME}` - add any number of user variables with the name `{NAME}`, ie. `v:user_id`
 

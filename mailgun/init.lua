@@ -138,14 +138,22 @@ do
       local to, subject, body, domain
       to, subject, body, domain = opts.to, opts.subject, opts.body, opts.domain
       assert(to, "missing recipients")
-      assert(subject, "missing subject")
-      assert(body, "missing body")
+      if not (opts.template) then
+        assert(subject, "missing subject")
+        assert(body, "missing body")
+      end
       domain = domain or self.domain
       local data = {
         from = opts.from or self.default_sender,
         subject = subject,
-        [opts.html and "html" or "text"] = body
+        template = opts.template
       }
+      if body then
+        data[opts.html and "html" or "text"] = body
+      end
+      if opts.template_vars then
+        data["t:variables"] = json.encode(opts.template_vars)
+      end
       add_recipients(data, "to", to)
       add_recipients(data, "cc", opts.cc)
       add_recipients(data, "bcc", opts.bcc)

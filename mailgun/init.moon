@@ -119,16 +119,25 @@ class Mailgun
     {:to, :subject, :body, :domain} = opts
 
     assert to, "missing recipients"
-    assert subject, "missing subject"
-    assert body, "missing body"
+
+    -- stored templates can provide the subject and body
+    unless opts.template
+      assert subject, "missing subject"
+      assert body, "missing body"
 
     domain or= @domain
 
     data = {
       from: opts.from or @default_sender
       subject: subject
-      [opts.html and "html" or "text"]: body
+      template: opts.template
     }
+
+    if body
+      data[opts.html and "html" or "text"] = body
+
+    if opts.template_vars
+      data["t:variables"] = json.encode opts.template_vars
 
     add_recipients data, "to", to
     add_recipients data, "cc", opts.cc

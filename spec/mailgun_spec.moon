@@ -254,6 +254,33 @@ describe "mailgun", ->
         }, parse_body req
 
 
+      it "sends an email with a template", ->
+        stub_http ".", send_success
+
+        assert mailgun\send_email {
+          to: "you@example.com"
+          template: "welcome"
+          template_vars: { name: "leafo" }
+          "t:version": "v2"
+        }
+
+        req = unpack http_requests
+
+        assert.same {
+          from: "leafo.net <postmaster@leafo.net>"
+          to: "you@example.com"
+          template: "welcome"
+          "t:variables": '{"name":"leafo"}'
+          "t:version": "v2"
+        }, parse_body req
+
+      it "requires body without template", ->
+        assert.has_error ->
+          mailgun\send_email {
+            to: "you@example.com"
+            subject: "Howdy"
+          }
+
       it "handles server error", ->
         stub_http ".", send_fail
 
