@@ -1,7 +1,7 @@
 
 ltn12 = require "ltn12"
 
-import encode_base64, encode_query_string, parse_query_string from require "mailgun.util"
+import encode_base64, encode_query_string, parse_query_string, escape from require "mailgun.util"
 import concat from table
 
 json = require "cjson"
@@ -28,13 +28,23 @@ to_hex = do
   hex_c = (c) -> string.format "%02x", string.byte c
   (str) -> (str\gsub ".", hex_c)
 
+REGION_PREFIXES = {
+  us: "https://api.mailgun.net"
+  eu: "https://api.eu.mailgun.net"
+}
+
 class Mailgun
-  api_prefix: "https://api.mailgun.net"
+  api_prefix: REGION_PREFIXES.us
   api_version: "v3"
 
   new: (opts={}) =>
     assert opts.domain, "missing `domain` from opts"
     assert opts.api_key, "missing `api_key` from opts"
+
+    if opts.api_prefix
+      @api_prefix = opts.api_prefix
+    elseif opts.region
+      @api_prefix = assert REGION_PREFIXES[opts.region], "unknown `region`: #{opts.region}"
 
     @http_provider = opts.http
     @domain = opts.domain
@@ -47,6 +57,8 @@ class Mailgun
     Mailgun {
       domain: domain
       api_key: @api_key
+      api_prefix: @api_prefix
+      webhook_signing_key: @webhook_signing_key
       http: @http_provider
     }
 
@@ -79,7 +91,7 @@ class Mailgun
       source: body and ltn12.source.string(body) or nil
       method: data and "POST" or "GET"
       headers: {
-        "Host": "api.mailgun.net"
+        "Host": url\match "^https?://([^/]+)"
         "Content-type": body and "application/x-www-form-urlencoded" or nil
         "Content-length": body and #body or nil
         "Authorization": "Basic " .. encode_base64 @api_key
@@ -168,15 +180,15 @@ class Mailgun
 
   get_unsubscribes: items_method "/unsubscribes"
   each_unsubscribe: => @_each_item @get_unsubscribes
-  get_unsubscribe: (email) => @api_request "/unsubscribes/#{email}"
+  get_unsubscribe: (email) => @api_request "/unsubscribes/#{escape email}"
 
   get_bounces: items_method "/bounces"
   each_bounce: => @_each_item @get_bounces
-  get_bounce: (email) => @api_request "/bounces/#{email}"
+  get_bounce: (email) => @api_request "/bounces/#{escape email}"
 
   get_complaints: items_method "/complaints"
   each_complaint: => @_each_item @get_complaints
-  get_complaint: (email) => @api_request "/complaints/#{email}"
+  get_complaint: (email) => @api_request "/complaints/#{escape email}"
 
   -- iterate through every item in basic paging api endpoint
   _each_item: (getter, params) =>

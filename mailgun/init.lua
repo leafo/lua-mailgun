@@ -1,8 +1,8 @@
 local ltn12 = require("ltn12")
-local encode_base64, encode_query_string, parse_query_string
+local encode_base64, encode_query_string, parse_query_string, escape
 do
   local _obj_0 = require("mailgun.util")
-  encode_base64, encode_query_string, parse_query_string = _obj_0.encode_base64, _obj_0.encode_query_string, _obj_0.parse_query_string
+  encode_base64, encode_query_string, parse_query_string, escape = _obj_0.encode_base64, _obj_0.encode_query_string, _obj_0.parse_query_string, _obj_0.escape
 end
 local concat
 concat = table.concat
@@ -54,16 +54,22 @@ do
     return (str:gsub(".", hex_c))
   end
 end
+local REGION_PREFIXES = {
+  us = "https://api.mailgun.net",
+  eu = "https://api.eu.mailgun.net"
+}
 local Mailgun
 do
   local _class_0
   local _base_0 = {
-    api_prefix = "https://api.mailgun.net",
+    api_prefix = REGION_PREFIXES.us,
     api_version = "v3",
     for_domain = function(self, domain)
       return Mailgun({
         domain = domain,
         api_key = self.api_key,
+        api_prefix = self.api_prefix,
+        webhook_signing_key = self.webhook_signing_key,
         http = self.http_provider
       })
     end,
@@ -102,7 +108,7 @@ do
         source = body and ltn12.source.string(body) or nil,
         method = data and "POST" or "GET",
         headers = {
-          ["Host"] = "api.mailgun.net",
+          ["Host"] = url:match("^https?://([^/]+)"),
           ["Content-type"] = body and "application/x-www-form-urlencoded" or nil,
           ["Content-length"] = body and #body or nil,
           ["Authorization"] = "Basic " .. encode_base64(self.api_key)
@@ -208,21 +214,21 @@ do
       return self:_each_item(self.get_unsubscribes)
     end,
     get_unsubscribe = function(self, email)
-      return self:api_request("/unsubscribes/" .. tostring(email))
+      return self:api_request("/unsubscribes/" .. tostring(escape(email)))
     end,
     get_bounces = items_method("/bounces"),
     each_bounce = function(self)
       return self:_each_item(self.get_bounces)
     end,
     get_bounce = function(self, email)
-      return self:api_request("/bounces/" .. tostring(email))
+      return self:api_request("/bounces/" .. tostring(escape(email)))
     end,
     get_complaints = items_method("/complaints"),
     each_complaint = function(self)
       return self:_each_item(self.get_complaints)
     end,
     get_complaint = function(self, email)
-      return self:api_request("/complaints/" .. tostring(email))
+      return self:api_request("/complaints/" .. tostring(escape(email)))
     end,
     _each_item = function(self, getter, params)
       local parse_url = require("socket.url").parse
@@ -304,6 +310,11 @@ do
       end
       assert(opts.domain, "missing `domain` from opts")
       assert(opts.api_key, "missing `api_key` from opts")
+      if opts.api_prefix then
+        self.api_prefix = opts.api_prefix
+      elseif opts.region then
+        self.api_prefix = assert(REGION_PREFIXES[opts.region], "unknown `region`: " .. tostring(opts.region))
+      end
       self.http_provider = opts.http
       self.domain = opts.domain
       self.api_key = opts.api_key

@@ -60,6 +60,8 @@ The following options are valid:
 * `api_key` - the API key to authenticate requests (**required**)
 * `webhook_signing_key` - key used for webhook signature verification, defaults to api key without username (*optional*)
 * `default_sender` - the sender to use for `send_email` when a sender is not provided (*optional*)
+* `region` - set to `"eu"` to use Mailgun's EU region endpoint (`https://api.eu.mailgun.net`) (*optional*)
+* `api_prefix` - override the API base URL entirely, takes precedence over `region` (*optional*)
 * `http` - set the HTTP client (*optional*)
 
 The value of `default_sender` has a default created from the `domain` like
@@ -239,7 +241,9 @@ Iterates through each complaint (fetching each page as needed). Similar to
 #### `new_mailgun = mailgun:for_domain(domain)`
 
 Returns a new instance of the API client configured the same way, but with the
-domain replaced with the provided domain. If you have multiple domains on your
+domain replaced with the provided domain. The API key, region/`api_prefix`,
+webhook signing key, and HTTP client are carried over; `default_sender` is
+regenerated from the new domain. If you have multiple domains on your
 account you can use this to switch to them for any of the `get_` methods.
 
 #### `mailgun:verify_webhook_signature(timestamp, token, signature)`

@@ -84,6 +84,44 @@ describe "mailgun", ->
       }
 
 
+  describe "region", ->
+    it "uses EU endpoint", ->
+      import Mailgun from require "mailgun"
+      mailgun = Mailgun {
+        domain: "leafo.net"
+        api_key: "hello-world"
+        region: "eu"
+        http: http
+      }
+
+      mailgun\api_request "/hello"
+      req = unpack http_requests
+      assert.same "https://api.eu.mailgun.net/v3/leafo.net/hello", req.url
+      assert.same "api.eu.mailgun.net", req.headers.Host
+
+    it "uses custom api_prefix", ->
+      import Mailgun from require "mailgun"
+      mailgun = Mailgun {
+        domain: "leafo.net"
+        api_key: "hello-world"
+        api_prefix: "http://localhost:8080"
+        http: http
+      }
+
+      mailgun\api_request "/hello"
+      req = unpack http_requests
+      assert.same "http://localhost:8080/v3/leafo.net/hello", req.url
+      assert.same "localhost:8080", req.headers.Host
+
+    it "fails on unknown region", ->
+      import Mailgun from require "mailgun"
+      assert.has_error ->
+        Mailgun {
+          domain: "leafo.net"
+          api_key: "hello-world"
+          region: "mars"
+        }
+
   describe "with mailgun", ->
     local mailgun
     before_each ->
@@ -322,6 +360,28 @@ describe "mailgun", ->
         {id: 22}
         {id: 23}
       },[u for u in mailgun\each_unsubscribe!]
+
+    it "escapes address when getting unsubscribe", ->
+      stub_http ".", -> 200, [[{}]]
+      mailgun\get_unsubscribe "leafo+test@example.com"
+      req = unpack http_requests
+      assert.same "https://api.mailgun.net/v3/leafo.net/unsubscribes/leafo%2btest%40example%2ecom", req.url
+
+    it "for_domain keeps client settings", ->
+      import Mailgun from require "mailgun"
+      client = Mailgun {
+        domain: "leafo.net"
+        api_key: "hello-world"
+        region: "eu"
+        webhook_signing_key: "signing-key"
+        http: http
+      }
+
+      other = client\for_domain "itch.zone"
+      assert.same "itch.zone", other.domain
+      assert.same "https://api.eu.mailgun.net", other.api_prefix
+      assert.same "signing-key", other.webhook_signing_key
+      assert.same "itch.zone <postmaster@itch.zone>", other.default_sender
 
     it "validates email", ->
       stub_http ".", -> 200, [[{}]]

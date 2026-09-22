@@ -62,4 +62,4 @@ encode_query_string = (t, sep="&") ->
   buf[i] = nil
   concat buf
 
-{:parse_query_string, :encode_query_string, :encode_base64}
+{:parse_query_string, :encode_query_string, :encode_base64, :escape}

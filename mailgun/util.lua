@@ -85,5 +85,6 @@ end
 return {
   parse_query_string = parse_query_string,
   encode_query_string = encode_query_string,
-  encode_base64 = encode_base64
+  encode_base64 = encode_base64,
+  escape = escape
 }
